@@ -1,0 +1,62 @@
+name: PAPI descriptors
+
+# Verifies the typed PAPI descriptor inputs are both (a) generated in sync with
+# the network registry and (b) backed by fresh chain metadata. The release build
+# jobs stay fully offline (they codegen from committed `.scale`); this networked
+# check is what guarantees the committed inputs aren't stale.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  papi-check:
+    runs-on: ubuntu-latest
+    name: Verify descriptors generated + metadata fresh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # postinstall runs `papi:config` (regenerate polkadot-api.json +
+      # host/descriptors/*.ts from networks.ts) then `papi` (offline codegen).
+      - name: Install dependencies
+        run: npm ci
+
+      # Catches "edited networks.ts but forgot to regenerate" — purely offline.
+      - name: Generated config + descriptors in sync with networks.ts
+        run: |
+          npm run papi:config
+          if ! git diff --exit-code -- \
+              packages/shared/.papi/polkadot-api.json \
+              packages/shared/host/descriptors/; then
+            echo "::error::Generated PAPI config/descriptors are out of date with packages/shared/host/networks.ts. Run 'npm run papi:config' and commit the result."
+            exit 1
+          fi
+
+      # Fetch fresh metadata for every configured chain (no codegen — dist is
+      # gitignored). Needs the chain RPCs reachable; only this check depends on
+      # that, never the release builds.
+      - name: Fetch fresh chain metadata
+        working-directory: packages/shared
+        run: npx polkadot-api update --skip-codegen
+
+      # Catches "a chain's runtime changed, committed .scale is stale". A fresh
+      # fetch that differs from the committed bytes (or the codeHash papi writes
+      # into the config) fails the gate.
+      - name: Committed metadata is fresh
+        run: |
+          if ! git diff --exit-code -- \
+              packages/shared/.papi/metadata/ \
+              packages/shared/.papi/polkadot-api.json; then
+            echo "::error::Committed PAPI metadata (.scale) is stale versus the live chains. Run 'npm run papi:update' and commit the updated metadata."
+            exit 1
+          fi

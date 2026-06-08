@@ -1,0 +1,118 @@
+/* Generated from polkadot-app-design-system-ios @ main
+   Source: Sources/DesignSystem/Generated/colors/themes/TokyoTheme.swift */
+
+[data-theme="tokyo"] {
+  color-scheme: light;
+
+  /* Foreground */
+  --color-fg-error:                       #D9363E;
+  --color-fg-link-hover:                  #881337;
+  --color-fg-link:                        #9F1239;
+  --color-fg-tertiary:                    #D14967;
+  --color-fg-secondary:                   #881337;
+  --color-fg-warning:                     #D17F00;
+  --color-fg-success:                     #16A34A;
+  --color-fg-primary:                     #4C0519;
+  --color-fg-primary-inverted:            #F4F4F5;
+  --color-fg-secondary-inverted:          #FFF7F8;
+  --color-fg-tertiary-inverted:           #FFE4E6;
+  --color-fg-static-white:                #FFFFFF;
+  --color-fg-secondary-hover:             #0B0C0F;
+  --color-fg-secondary-inverted-hover:    #DADADA;
+  --color-fg-disabled:                    #D9576D;
+
+  /* Background — surface */
+  --color-bg-surface-main:                #FFE4E6;
+  --color-bg-surface-container:           #FFFFFF;
+  --color-bg-surface-container-inverted:  #9F1239;
+  --color-bg-surface-nested-inverted:     #D9576D;
+  --color-bg-surface-overlay:             #0000007A;
+  --color-bg-surface-nested:              #FFE4E6;
+
+  /* Background — selection */
+  --color-bg-selection-container-hover:           #FFF7F8;
+  --color-bg-selection-container-active:          #FFE4E6;
+  --color-bg-selection-container-hover-inverted:  #4C0519;
+  --color-bg-selection-container-active-inverted: #1A1B20;
+
+  /* Background — status */
+  --color-bg-status-error:          #D9363E;
+  --color-bg-status-warning:        #F59E0B;
+  --color-bg-status-error-hover:    #B4232F;
+  --color-bg-status-warning-hover:  #FFBB33;
+  --color-bg-status-success:        #16A34A;
+  --color-bg-status-success-hover:  #12803C;
+
+  /* Background — accent */
+  --color-bg-accent: #4D8DFF;
+
+  /* Background — action */
+  --color-bg-action-primary:                  #9F1239;
+  --color-bg-action-secondary:                #FDA4AF;
+  --color-bg-action-primary-inverted:         #FFFFFF;
+  --color-bg-action-secondary-inverted:       #4C0519;
+  --color-bg-action-primary-hover:            #23252A;
+  --color-bg-action-secondary-hover:          #DADBE0;
+  --color-bg-action-primary-inverted-hover:   #F4F4F5;
+  --color-bg-action-secondary-inverted-hover: #404249;
+  --color-bg-action-tertiary:                 #FFE4E6;
+  --color-bg-action-tertiary-hover:           #A9ABB3;
+  --color-bg-action-tertiary-inverted:        #881337;
+  --color-bg-action-tertiary-inverted-hover:  #585B62;
+  --color-bg-action-active:                   #C9CAD0;
+  --color-bg-action-disabled:                 #FECDD3;
+  --color-bg-action-error:                    #FFCACA;
+
+  /* Background — illustration */
+  --color-bg-illustration-dark:        #D14967;
+  --color-bg-illustration-light:       #FFF7F8;
+  --color-bg-illustration-dark-muted:  #FDA4AF;
+  --color-bg-illustration-light-muted: #FFE4E6;
+
+  /* Stroke */
+  --color-stroke-primary:          #FECDD3;
+  --color-stroke-error:            #D9363E;
+  --color-stroke-warning:          #F59E0B;
+  --color-stroke-success:          #22C55E;
+  --color-stroke-tertiary:         #FB7185;
+  --color-stroke-primary-inverted: #2C2E34;
+  --color-stroke-secondary:        #FDA4AF;
+  --color-stroke-cutout:           #FFFFFF;
+
+  /* Focus */
+  --color-focus-error: #D9363E3D;
+  --color-focus-ring:  #0000003D;
+
+  /* Shadow */
+  --color-shadow-soft:   #0000003D;
+  --color-shadow-medium: #0000007A;
+
+  /* Avatar — background */
+  --color-avatar-bg-amethyst:  #7C3AED;
+  --color-avatar-bg-opal:      #1E1B4B;
+  --color-avatar-bg-turquoise: #0891B2;
+  --color-avatar-bg-onyx:      #1E293B;
+  --color-avatar-bg-pearl:     #262626;
+  --color-avatar-bg-emerald:   #064E3B;
+  --color-avatar-bg-topaz:     #C2410C;
+  --color-avatar-bg-ruby:      #9F1239;
+  --color-avatar-bg-sapphire:  #1E3A8A;
+  --color-avatar-bg-garnet:    #7F1D1D;
+
+  /* Avatar — foreground */
+  --color-avatar-fg-amethyst:  #EDE9FE;
+  --color-avatar-fg-opal:      #A5B4FC;
+  --color-avatar-fg-turquoise: #CFFAFE;
+  --color-avatar-fg-onyx:      #E5E7EB;
+  --color-avatar-fg-pearl:     #F5F5F5;
+  --color-avatar-fg-emerald:   #D1FAE5;
+  --color-avatar-fg-topaz:     #FFEDD5;
+  --color-avatar-fg-ruby:      #FFE4E6;
+  --color-avatar-fg-sapphire:  #DBEAFE;
+  --color-avatar-fg-garnet:    #FEE2E2;
+  --color-avatar-fg-amethyst-2: #EDE9FE;
+
+  /* Gradient */
+  --color-gradient-navigation-overlay-start: #FFFFFFCC;
+  --color-gradient-navigation-overlay-end:   #FFFFFF00;
+}

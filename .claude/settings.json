@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "paritytech": {
+      "source": {
+        "source": "github",
+        "repo": "paritytech/product-sdk"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "product-sdk@paritytech": true
+  }
+}

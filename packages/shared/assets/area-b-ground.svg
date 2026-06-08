@@ -1,0 +1,142 @@
+<svg viewBox="0 0 820 820" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, -apple-system, sans-serif">
+  <rect width="820" height="820" fill="#f8f9fa"/>
+
+  <!-- Title -->
+  <text x="410" y="20" text-anchor="middle" font-size="14" font-weight="600" fill="#2d3436">Funkhaus Nalepastraße — Block B Ground Floor (EG)</text>
+
+  <!-- ============ BUILDING SHELL ============ -->
+  <!-- Rectangular north block -->
+  <path d="M 280,30 L 780,30 L 780,310 L 620,310 L 620,430 L 490,430 L 490,310 L 280,310 Z"
+    fill="none" stroke="#2d3436" stroke-width="3.5" stroke-linejoin="round"/>
+
+  <!-- Curved wing outer + Spreeblick -->
+  <path d="M 280,310 L 280,380 A 300,300 0 0,0 95,710 L 95,780 L 220,780 L 220,710 A 170,170 0 0,1 350,510 L 350,430 L 490,430"
+    fill="none" stroke="#2d3436" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M 95,710 L 95,780 L 220,780 L 220,710" fill="none" stroke="#2d3436" stroke-width="2.5"/>
+
+  <!-- ============ ROOMS ============ -->
+
+  <!-- Foyer -->
+  <rect x="430" y="40" width="340" height="260" rx="3" fill="#74b9ff" fill-opacity="0.2" stroke="#636e72" stroke-width="1.2"/>
+  <text x="600" y="165" text-anchor="middle" font-size="16" font-weight="600" fill="#2d3436">Foyer</text>
+
+  <!-- Small Foyer -->
+  <rect x="500" y="310" width="115" height="115" rx="2" fill="#74b9ff" fill-opacity="0.2" stroke="#636e72" stroke-width="1.2"/>
+  <text x="557" y="362" text-anchor="middle" font-size="11" font-weight="600" fill="#2d3436">Small</text>
+  <text x="557" y="376" text-anchor="middle" font-size="11" font-weight="600" fill="#2d3436">Foyer</text>
+
+  <!-- Hörnchengang curved corridor -->
+  <path d="M 280,315 L 280,380 A 300,300 0 0,0 98,705 L 150,705 A 240,240 0 0,1 347,410 L 347,315 Z"
+    fill="#b8e6c8" fill-opacity="0.18" stroke="#636e72" stroke-width="1"/>
+  <text x="230" y="520" text-anchor="middle" font-size="11" font-weight="600" fill="#2d3436"
+    transform="rotate(-70,230,520)">Hörnchengang</text>
+
+  <!-- H1-5 -->
+  <rect x="290" y="200" width="90" height="60" rx="2" fill="#a29bfe" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="335" y="235" text-anchor="middle" font-size="10" font-weight="600" fill="#2d3436">H1-5</text>
+
+  <!-- H1-1 -->
+  <rect x="310" y="265" width="60" height="40" rx="2" fill="#fdcb6e" fill-opacity="0.22" stroke="#636e72" stroke-width="1"/>
+  <text x="340" y="290" text-anchor="middle" font-size="9" font-weight="600" fill="#2d3436">H1-1</text>
+
+  <!-- H1 -->
+  <rect x="290" y="320" width="55" height="55" rx="2" fill="#a29bfe" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="317" y="352" text-anchor="middle" font-size="10" font-weight="600" fill="#2d3436">H1</text>
+
+  <!-- H1-2 along curve -->
+  <path d="M 265,385 L 340,385 L 340,450 L 285,450 A 260,260 0 0,0 265,385 Z"
+    fill="#a29bfe" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="305" y="422" text-anchor="middle" font-size="10" font-weight="600" fill="#2d3436">H1-2</text>
+
+  <!-- H1-3 -->
+  <path d="M 235,460 L 320,440 L 310,500 L 225,510 A 260,260 0 0,0 235,460 Z"
+    fill="#a29bfe" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="272" y="480" text-anchor="middle" font-size="10" font-weight="600" fill="#2d3436">H1-3</text>
+
+  <!-- H1-4 large -->
+  <path d="M 190,520 L 290,500 L 260,620 L 155,650 A 270,270 0 0,0 190,520 Z"
+    fill="#a29bfe" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="225" y="575" text-anchor="middle" font-size="11" font-weight="600" fill="#2d3436">H1-4</text>
+
+  <!-- H2 -->
+  <rect x="360" y="320" width="65" height="50" rx="2" fill="#fdcb6e" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="392" y="350" text-anchor="middle" font-size="10" font-weight="600" fill="#2d3436">H2</text>
+
+  <!-- H2-3 -->
+  <rect x="430" y="320" width="55" height="50" rx="2" fill="#fdcb6e" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="457" y="350" text-anchor="middle" font-size="9" font-weight="600" fill="#2d3436">H2-3</text>
+
+  <!-- H2-4 -->
+  <rect x="430" y="375" width="55" height="50" rx="2" fill="#fdcb6e" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="457" y="405" text-anchor="middle" font-size="9" font-weight="600" fill="#2d3436">H2-4</text>
+
+  <!-- H2-1 -->
+  <rect x="360" y="375" width="65" height="50" rx="2" fill="#fdcb6e" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="392" y="405" text-anchor="middle" font-size="9" font-weight="600" fill="#2d3436">H2-1</text>
+
+  <!-- H2-2 -->
+  <rect x="360" y="430" width="125" height="60" rx="2" fill="#fdcb6e" fill-opacity="0.2" stroke="#636e72" stroke-width="1"/>
+  <text x="422" y="465" text-anchor="middle" font-size="10" font-weight="600" fill="#2d3436">H2-2</text>
+
+  <!-- Spreeblick EG -->
+  <rect x="100" y="715" width="115" height="60" rx="2" fill="#55efc4" fill-opacity="0.22" stroke="#636e72" stroke-width="1.2"/>
+  <text x="157" y="750" text-anchor="middle" font-size="11" font-weight="600" fill="#2d3436">Spreeblick EG</text>
+
+  <!-- ============ TOILETS ============ -->
+  <!-- Main WC near Small Foyer -->
+  <rect x="510" y="432" width="95" height="35" rx="2" fill="#fab1a0" fill-opacity="0.4" stroke="#636e72" stroke-width="1"/>
+  <text x="557" y="454" text-anchor="middle" font-size="9" font-weight="600" fill="#2d3436">WC</text>
+
+  <!-- Secondary WC off Foyer -->
+  <rect x="400" y="55" width="25" height="50" rx="2" fill="#fab1a0" fill-opacity="0.3" stroke="#636e72" stroke-width="0.8"/>
+  <text x="412" y="83" text-anchor="middle" font-size="7" font-weight="600" fill="#2d3436">WC</text>
+
+  <!-- ============ STAIRS ============ -->
+  <!-- Stair symbol helper: rect + horizontal lines -->
+
+  <!-- Treppe A -->
+  <rect x="295" y="45" width="28" height="28" rx="2" fill="#ff7675" fill-opacity="0.45" stroke="#636e72" stroke-width="1"/>
+  <line x1="298" y1="51" x2="320" y2="51" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="298" y1="56" x2="320" y2="56" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="298" y1="61" x2="320" y2="61" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="298" y1="66" x2="320" y2="66" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <text x="309" y="86" text-anchor="middle" font-size="7" fill="#636e72" font-weight="600">Treppe A</text>
+
+  <!-- Treppe D -->
+  <rect x="295" y="155" width="28" height="28" rx="2" fill="#ff7675" fill-opacity="0.45" stroke="#636e72" stroke-width="1"/>
+  <line x1="298" y1="161" x2="320" y2="161" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="298" y1="166" x2="320" y2="166" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="298" y1="171" x2="320" y2="171" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="298" y1="176" x2="320" y2="176" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <text x="309" y="196" text-anchor="middle" font-size="7" fill="#636e72" font-weight="600">Treppe D</text>
+
+  <!-- Treppe G -->
+  <rect x="290" y="265" width="16" height="28" rx="2" fill="#ff7675" fill-opacity="0.45" stroke="#636e72" stroke-width="1"/>
+  <line x1="292" y1="271" x2="304" y2="271" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="292" y1="276" x2="304" y2="276" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="292" y1="281" x2="304" y2="281" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="292" y1="286" x2="304" y2="286" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <text x="298" y="306" text-anchor="middle" font-size="7" fill="#636e72" font-weight="600">Treppe G</text>
+
+  <!-- ============ NORTH ARROW ============ -->
+  <polygon points="780,770 774,788 780,782 786,788" fill="#636e72"/>
+  <text x="780" y="766" text-anchor="middle" font-size="9" font-weight="700" fill="#636e72">N</text>
+
+  <!-- ============ LEGEND ============ -->
+  <g transform="translate(30, 800)">
+    <rect x="0" y="0" width="12" height="12" rx="2" fill="#74b9ff" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="16" y="10" font-size="9" fill="#636e72">Foyer</text>
+    <rect x="60" y="0" width="12" height="12" rx="2" fill="#a29bfe" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="76" y="10" font-size="9" fill="#636e72">Halls (H1)</text>
+    <rect x="140" y="0" width="12" height="12" rx="2" fill="#fdcb6e" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="156" y="10" font-size="9" fill="#636e72">Rooms (H2)</text>
+    <rect x="230" y="0" width="12" height="12" rx="2" fill="#b8e6c8" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="246" y="10" font-size="9" fill="#636e72">Hörnchengang</text>
+    <rect x="340" y="0" width="12" height="12" rx="2" fill="#55efc4" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="356" y="10" font-size="9" fill="#636e72">Spreeblick</text>
+    <rect x="420" y="0" width="12" height="12" rx="2" fill="#ff7675" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="436" y="10" font-size="9" fill="#636e72">Stairs</text>
+    <rect x="480" y="0" width="12" height="12" rx="2" fill="#fab1a0" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="496" y="10" font-size="9" fill="#636e72">WC</text>
+  </g>
+</svg>

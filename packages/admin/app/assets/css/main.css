@@ -1,0 +1,138 @@
+@import 'tailwindcss';
+
+/*
+ * Self-hosted Inter (variable, wght 100-900), replacing the former Google Fonts
+ * @import. Inter v20, subsets latin + latin-ext, downloaded from fonts.gstatic.com;
+ * files live in packages/shared/public/fonts (served at /fonts by both apps via
+ * nitro.publicAssets). License: SIL OFL 1.1 (https://github.com/rsms/inter).
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-v20-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-v20-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@theme {
+  /* ── Surfaces ── */
+  --color-background:       #000000;
+  --color-surface:          #141414;
+  --color-surface-2:        #1f1f1f;
+  --color-surface-3:        #2a2a2a;
+  --color-surface-4:        #3a3a3a;
+  --color-surface-elevated: #2a2a2a;
+
+  /* ── Text ── */
+  --color-text-primary:     #fafaf9;
+  --color-text-secondary:   #d6d3d1;
+  --color-text-muted:       #a8a29e;
+
+  /* ── Borders ── */
+  --color-border:           rgba(255, 255, 255, 0.12);
+  --color-border-strong:    rgba(255, 255, 255, 0.20);
+
+  /* ── Brand ── */
+  --color-primary:          #ffffff;
+  --color-primary-hover:    rgba(255, 255, 255, 0.85);
+  --color-primary-light:    rgba(255, 255, 255, 0.08);
+
+  /* ── Secondary button ── */
+  --color-secondary-btn:    rgba(255, 255, 255, 0.10);
+  --color-secondary-btn-hover: rgba(255, 255, 255, 0.15);
+
+  /* ── Accent colors ── */
+  --color-violet:           #7916f3;
+  --color-violet-light:     #2d1466;
+  --color-light-blue-violet: #7365FF;
+  --color-lime:             #e4ff07;
+  --color-cyan:             #07ffff;
+
+  /* ── Status ── */
+  --color-success:          #35c759;
+  --color-success-muted:    rgba(53, 199, 89, 0.12);
+  --color-danger:           #ff3123;
+  --color-danger-muted:     rgba(255, 49, 35, 0.12);
+  --color-warning:          #ff9500;
+  --color-warning-muted:    rgba(255, 149, 0, 0.12);
+
+  /* ── Stone scale ── */
+  --color-stone-50:         #fafaf9;
+  --color-stone-100:        #f5f5f4;
+  --color-stone-200:        #e7e5e4;
+  --color-stone-300:        #d6d3d1;
+  --color-stone-400:        #a8a29e;
+  --color-stone-500:        #78716c;
+  --color-stone-600:        #57534e;
+  --color-stone-700:        #44403c;
+  --color-stone-800:        #292524;
+  --color-stone-900:        #1c1917;
+  --color-stone-950:        #0c0a09;
+
+  /* ── Violet scale ── */
+  --color-violet-50:        #f3f0ff;
+  --color-violet-100:       #e9e3ff;
+  --color-violet-200:       #d6ccff;
+  --color-violet-300:       #b8a6ff;
+  --color-violet-400:       #9575ff;
+  --color-violet-500:       #7916f3;
+  --color-violet-600:       #6b14db;
+  --color-violet-700:       #5c12b8;
+  --color-violet-800:       #4d1096;
+  --color-violet-900:       #410f7a;
+
+  /* ── Fonts ── */
+  --font-heading:           'Inter', sans-serif;
+  --font-body:              'Inter', sans-serif;
+  /* Unbounded is not loaded (was unused); font-display falls back to sans-serif */
+  --font-display:           'Unbounded', sans-serif;
+  --font-mono:              'Inter', sans-serif;
+
+  /* ── Radius ── */
+  --radius-sm:              2px;
+  --radius-md:              6px;
+  --radius-lg:              8px;
+  --radius-xl:              12px;
+  --radius-2xl:             16px;
+  --radius-3xl:             24px;
+
+  /* ── Shadows (minimal on dark surfaces) ── */
+  --shadow-sm:              0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md:              0 2px 8px 0 rgb(0 0 0 / 0.5);
+  --shadow-lg:              0 4px 24px 0 rgb(0 0 0 / 0.7);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}

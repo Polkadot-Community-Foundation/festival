@@ -1,0 +1,14 @@
+.env
+
+# Foundry
+lib/
+cache/
+out/
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+
+# Hardhat (revive e2e)
+node_modules/
+e2e/cache/
+e2e/artifacts/

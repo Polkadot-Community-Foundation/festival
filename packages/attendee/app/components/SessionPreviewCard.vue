@@ -1,0 +1,35 @@
+<script setup lang="ts">
+import { computed } from 'vue'
+import { decodeBadgeHex } from '@festival/shared/utils/badge'
+
+const props = defineProps<{
+  name: string
+  startTime: string
+  endTime: string
+  locationLabel?: string
+  badgeHex?: string
+}>()
+
+const badgePixels = computed(() => {
+  if (!props.badgeHex) return null
+  return decodeBadgeHex(props.badgeHex)
+})
+</script>
+
+<template>
+  <div
+    data-testid="session-preview-card"
+    class="rounded-2xl bg-surface-2 px-6 pt-6 pb-5 flex flex-col items-center text-center"
+  >
+    <div v-if="badgePixels" class="w-[52%] aspect-square rounded-2xl overflow-hidden">
+      <BadgeCanvas :pixels="badgePixels" :size="128" />
+    </div>
+
+    <p class="text-[18px] leading-[22px] font-semibold text-white mt-5">{{ name }}</p>
+
+    <p class="text-xs text-white/50 mt-2">
+      {{ startTime }} - {{ endTime }}
+      <span v-if="locationLabel">&ensp;{{ locationLabel }}</span>
+    </p>
+  </div>
+</template>

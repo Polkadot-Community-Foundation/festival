@@ -1,0 +1,64 @@
+{
+  "name": "conference-app",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "//overrides": "Forced versions due to upstream regressions: (a) @polkadot-api/json-rpc-provider 0.0.1 hoisted with empty exports breaks PAPI v2 chain messages; (b) @nuxt/vite-builder 3.21.3+ and vite 7.3.2+ broke the Nuxt dev server's vite-node IPC. Re-evaluate when fixed patches ship.",
+  "overrides": {
+    "@polkadot-api/json-rpc-provider": "0.2.0",
+    "@nuxt/vite-builder": "3.21.2",
+    "vite": "7.3.1"
+  },
+  "scripts": {
+    "postinstall": "npm run papi:config && npm run -w packages/shared papi",
+    "papi:config": "npx tsx scripts/chain/gen-papi-config.ts",
+    "papi:update": "npm run papi:config && npm run -w packages/shared papi:update",
+    "dev:admin": "npm run -w packages/admin dev",
+    "dev:admin:paseo": "npm run -w packages/admin dev -- --dotenv .env.paseo",
+    "dev:admin:paseo-next-v2": "npm run -w packages/admin dev -- --dotenv .env.paseo-next-v2",
+    "dev:admin:previewnet": "npm run -w packages/admin dev -- --dotenv .env.previewnet",
+    "dev:attendee": "npm run -w packages/attendee dev",
+    "dev:attendee:paseo": "npm run -w packages/attendee dev -- --dotenv .env.paseo",
+    "dev:attendee:paseo-next-v2": "npm run -w packages/attendee dev -- --dotenv .env.paseo-next-v2",
+    "dev:attendee:previewnet": "npm run -w packages/attendee dev -- --dotenv .env.previewnet",
+    "build:admin": "npm run -w packages/admin build",
+    "build:admin:paseo": "npm run -w packages/admin build -- --dotenv .env.paseo",
+    "build:admin:paseo-next-v2": "npm run -w packages/admin build -- --dotenv .env.paseo-next-v2",
+    "build:admin:previewnet": "npm run -w packages/admin build -- --dotenv .env.previewnet",
+    "build:attendee": "npm run -w packages/attendee build",
+    "build:attendee:paseo": "npm run -w packages/attendee build -- --dotenv .env.paseo",
+    "build:attendee:paseo-next-v2": "npm run -w packages/attendee build -- --dotenv .env.paseo-next-v2",
+    "build:attendee:previewnet": "npm run -w packages/attendee build -- --dotenv .env.previewnet",
+    "setup": "npx tsx scripts/setup.ts",
+    "grant-role": "npx tsx scripts/deploy/grant-festival-role.ts",
+    "deploy:festival": "npx tsx scripts/deploy/deploy-festival.ts",
+    "deploy:festival:paseo": "npx tsx scripts/deploy/deploy-festival.ts --env paseo",
+    "deploy:festival:paseo-next-v2": "npx tsx scripts/deploy/deploy-festival.ts --env paseo-next-v2",
+    "deploy:festival:previewnet": "npx tsx scripts/deploy/deploy-festival.ts --env previewnet",
+    "deploy:multicall": "npx tsx scripts/deploy/deploy-multicall.ts",
+    "deploy:multicall:paseo": "npx tsx scripts/deploy/deploy-multicall.ts --env paseo",
+    "deploy:multicall:paseo-next-v2": "npx tsx scripts/deploy/deploy-multicall.ts --env paseo-next-v2",
+    "deploy:multicall:previewnet": "npx tsx scripts/deploy/deploy-multicall.ts --env previewnet",
+    "deploy:test-festival:paseo-next-v2": "npx tsx scripts/e2e/deploy-test-festival.ts --env paseo-next-v2",
+    "deploy:paseo": "npm run deploy:multicall:paseo && npm run deploy:festival:paseo",
+    "deploy:paseo-next-v2": "npm run deploy:multicall:paseo-next-v2 && npm run deploy:festival:paseo-next-v2",
+    "deploy:previewnet": "npm run deploy:multicall:previewnet && npm run deploy:festival:previewnet",
+    "sync-network": "npx tsx scripts/chain/sync-network.ts",
+    "build:maps": "python3 scripts/maps/convert-maps.py",
+    "test:e2e:admin": "npx playwright test -c packages/admin/playwright.config.ts",
+    "test:e2e:attendee": "npx playwright test -c packages/attendee/playwright.config.ts",
+    "test:e2e": "npm run test:e2e:admin && npm run test:e2e:attendee",
+    "test:unit": "node --test --import tsx 'packages/**/*.test.ts' 'scripts/**/*.test.ts'"
+  },
+  "devDependencies": {
+    "@parity/host-api-test-sdk": "^0.9.0",
+    "@playwright/test": "^1.59.1",
+    "dotenv": "^17.3.1",
+    "tsx": "^4.21.0"
+  }
+}

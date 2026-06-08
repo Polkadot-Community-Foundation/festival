@@ -1,0 +1,116 @@
+<svg viewBox="0 0 820 820" xmlns="http://www.w3.org/2000/svg" font-family="system-ui, -apple-system, sans-serif">
+  <rect width="820" height="820" fill="#f8f9fa"/>
+
+  <!-- Title -->
+  <text x="410" y="20" text-anchor="middle" font-size="14" font-weight="600" fill="#2d3436">Funkhaus Nalepastraße — Block B First Floor (1.OG)</text>
+
+  <!-- ============ BUILDING SHELL ============ -->
+  <path d="M 280,30 L 780,30 L 780,310 L 620,310 L 620,430 L 490,430 L 490,310 L 280,310 Z"
+    fill="none" stroke="#2d3436" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M 280,310 L 280,380 A 300,300 0 0,0 95,710 L 95,780 L 220,780 L 220,710 A 170,170 0 0,1 350,510 L 350,430 L 490,430"
+    fill="none" stroke="#2d3436" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M 95,710 L 95,780 L 220,780 L 220,710" fill="none" stroke="#2d3436" stroke-width="2.5"/>
+
+  <!-- ============ ROOMS ============ -->
+
+  <!-- Studio 1 -->
+  <rect x="290" y="40" width="340" height="260" rx="3" fill="#6c5ce7" fill-opacity="0.18" stroke="#636e72" stroke-width="1.2"/>
+  <text x="460" y="160" text-anchor="middle" font-size="18" font-weight="700" fill="#2d3436">Studio 1</text>
+  <text x="460" y="180" text-anchor="middle" font-size="11" fill="#636e72">1482 pax</text>
+
+  <!-- Side rooms east wall -->
+  <rect x="640" y="45" width="130" height="50" rx="2" fill="#fdcb6e" fill-opacity="0.18" stroke="#636e72" stroke-width="0.8"/>
+  <rect x="640" y="100" width="130" height="42" rx="2" fill="#fdcb6e" fill-opacity="0.18" stroke="#636e72" stroke-width="0.8"/>
+  <rect x="640" y="147" width="130" height="42" rx="2" fill="#fdcb6e" fill-opacity="0.18" stroke="#636e72" stroke-width="0.8"/>
+  <rect x="640" y="194" width="130" height="42" rx="2" fill="#fdcb6e" fill-opacity="0.18" stroke="#636e72" stroke-width="0.8"/>
+  <rect x="640" y="241" width="130" height="52" rx="2" fill="#fdcb6e" fill-opacity="0.18" stroke="#636e72" stroke-width="0.8"/>
+  <text x="705" y="75" text-anchor="middle" font-size="9" fill="#636e72">Side rooms</text>
+
+  <!-- Studio 2 -->
+  <rect x="350" y="315" width="135" height="110" rx="2" fill="#a29bfe" fill-opacity="0.18" stroke="#636e72" stroke-width="1.2"/>
+  <text x="417" y="368" text-anchor="middle" font-size="14" font-weight="600" fill="#2d3436">Studio 2</text>
+  <text x="417" y="385" text-anchor="middle" font-size="10" fill="#636e72">800 pax</text>
+
+  <!-- Foyer OG -->
+  <rect x="490" y="315" width="125" height="110" rx="2" fill="#74b9ff" fill-opacity="0.2" stroke="#636e72" stroke-width="1.2"/>
+  <text x="552" y="375" text-anchor="middle" font-size="13" font-weight="600" fill="#2d3436">Foyer OG</text>
+
+  <!-- Curved wing corridor / gallery -->
+  <path d="M 280,315 L 280,380 A 300,300 0 0,0 98,705 L 150,705 A 240,240 0 0,1 347,410 L 347,315 Z"
+    fill="#b8e6c8" fill-opacity="0.12" stroke="#636e72" stroke-width="1"/>
+  <text x="235" y="520" text-anchor="middle" font-size="11" font-weight="600" fill="#2d3436"
+    transform="rotate(-70,235,520)">Gallery / Corridor</text>
+
+  <!-- Spreeblick 1.OG -->
+  <rect x="100" y="715" width="115" height="60" rx="2" fill="#55efc4" fill-opacity="0.22" stroke="#636e72" stroke-width="1.2"/>
+  <text x="157" y="750" text-anchor="middle" font-size="11" font-weight="600" fill="#2d3436">Spreeblick 1.OG</text>
+
+  <!-- EXIT markers -->
+  <g font-size="6.5" font-weight="700" fill="#d63031">
+    <rect x="345" y="302" width="24" height="10" rx="2" fill="#d63031" fill-opacity="0.2" stroke="#d63031" stroke-width="0.8"/>
+    <text x="357" y="310" text-anchor="middle">EXIT A</text>
+    <rect x="430" y="302" width="24" height="10" rx="2" fill="#d63031" fill-opacity="0.2" stroke="#d63031" stroke-width="0.8"/>
+    <text x="442" y="310" text-anchor="middle">EXIT B</text>
+    <rect x="515" y="302" width="24" height="10" rx="2" fill="#d63031" fill-opacity="0.2" stroke="#d63031" stroke-width="0.8"/>
+    <text x="527" y="310" text-anchor="middle">EXIT C</text>
+    <rect x="600" y="302" width="24" height="10" rx="2" fill="#d63031" fill-opacity="0.2" stroke="#d63031" stroke-width="0.8"/>
+    <text x="612" y="310" text-anchor="middle">EXIT D</text>
+  </g>
+
+  <!-- ============ STAIRS ============ -->
+  <!-- Treppe A -->
+  <rect x="635" y="315" width="28" height="28" rx="2" fill="#ff7675" fill-opacity="0.45" stroke="#636e72" stroke-width="1"/>
+  <line x1="638" y1="321" x2="660" y2="321" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="638" y1="326" x2="660" y2="326" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="638" y1="331" x2="660" y2="331" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="638" y1="336" x2="660" y2="336" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <text x="649" y="356" text-anchor="middle" font-size="7" fill="#636e72" font-weight="600">Treppe A</text>
+
+  <!-- Treppe D -->
+  <rect x="290" y="155" width="28" height="28" rx="2" fill="#ff7675" fill-opacity="0.45" stroke="#636e72" stroke-width="1"/>
+  <line x1="293" y1="161" x2="315" y2="161" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="293" y1="166" x2="315" y2="166" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="293" y1="171" x2="315" y2="171" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="293" y1="176" x2="315" y2="176" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <text x="304" y="196" text-anchor="middle" font-size="7" fill="#636e72" font-weight="600">Treppe D</text>
+
+  <!-- Treppe G -->
+  <rect x="290" y="280" width="20" height="24" rx="2" fill="#ff7675" fill-opacity="0.45" stroke="#636e72" stroke-width="1"/>
+  <line x1="293" y1="286" x2="307" y2="286" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="293" y1="291" x2="307" y2="291" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="293" y1="296" x2="307" y2="296" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <text x="300" y="317" text-anchor="middle" font-size="7" fill="#636e72" font-weight="600">Treppe G</text>
+
+  <!-- Treppe J -->
+  <rect x="620" y="400" width="28" height="24" rx="2" fill="#ff7675" fill-opacity="0.45" stroke="#636e72" stroke-width="1"/>
+  <line x1="623" y1="406" x2="645" y2="406" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="623" y1="411" x2="645" y2="411" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <line x1="623" y1="416" x2="645" y2="416" stroke="#636e72" stroke-width="0.6" opacity="0.5"/>
+  <text x="634" y="437" text-anchor="middle" font-size="7" fill="#636e72" font-weight="600">Treppe J</text>
+
+  <!-- Internal stairs in Studio 1 -->
+  <rect x="290" y="45" width="18" height="40" rx="1" fill="#ff7675" fill-opacity="0.25" stroke="#636e72" stroke-width="0.6"/>
+  <rect x="290" y="250" width="18" height="40" rx="1" fill="#ff7675" fill-opacity="0.25" stroke="#636e72" stroke-width="0.6"/>
+
+  <!-- ============ NORTH ARROW ============ -->
+  <polygon points="780,770 774,788 780,782 786,788" fill="#636e72"/>
+  <text x="780" y="766" text-anchor="middle" font-size="9" font-weight="700" fill="#636e72">N</text>
+
+  <!-- ============ LEGEND ============ -->
+  <g transform="translate(30, 800)">
+    <rect x="0" y="0" width="12" height="12" rx="2" fill="#6c5ce7" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="16" y="10" font-size="9" fill="#636e72">Studio 1</text>
+    <rect x="80" y="0" width="12" height="12" rx="2" fill="#a29bfe" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="96" y="10" font-size="9" fill="#636e72">Studio 2</text>
+    <rect x="160" y="0" width="12" height="12" rx="2" fill="#74b9ff" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="176" y="10" font-size="9" fill="#636e72">Foyer OG</text>
+    <rect x="240" y="0" width="12" height="12" rx="2" fill="#55efc4" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="256" y="10" font-size="9" fill="#636e72">Spreeblick</text>
+    <rect x="325" y="0" width="12" height="12" rx="2" fill="#fdcb6e" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="341" y="10" font-size="9" fill="#636e72">Side Rooms</text>
+    <rect x="415" y="0" width="12" height="12" rx="2" fill="#b8e6c8" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="431" y="10" font-size="9" fill="#636e72">Gallery</text>
+    <rect x="480" y="0" width="12" height="12" rx="2" fill="#ff7675" fill-opacity="0.5" stroke="#636e72" stroke-width="0.5"/>
+    <text x="496" y="10" font-size="9" fill="#636e72">Stairs</text>
+  </g>
+</svg>

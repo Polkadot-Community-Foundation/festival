@@ -1,0 +1,140 @@
+<script setup lang="ts">
+import { ref, computed, watch } from "vue";
+import { useSchedule } from "~/composables/useSchedule";
+import { useBookmarks } from "~/composables/useBookmarks";
+import { useFestival } from "~/composables/useFestival";
+import { useRegistration } from "~/composables/useRegistration";
+import { FESTIVAL_ADDRESS } from "@festival/shared/contracts/addresses";
+import { MOCK_VENUE_MAP } from "@festival/shared/mocks";
+import { DEFAULT_ZONES } from "@festival/shared/venue/zones";
+import { hasDeployedContracts } from "@festival/shared/contracts/festival-reads";
+import { getMarkerLocationLabel } from "@festival/shared/venue/floors";
+import { cidToGatewayUrl } from "@festival/shared/metadata/cid";
+import { formatTimeBerlin, formatDateBerlin, parseFestivalDate, isSameDay } from "@festival/shared/utils/time";
+
+const route = useRoute();
+const id = route.params.id as string;
+const { entries } = useSchedule();
+const { toggleBookmark, isBookmarked } = useBookmarks();
+const { metadata, isLoading: festivalLoading } = useFestival();
+const { isCheckedIn } = useRegistration(FESTIVAL_ADDRESS);
+
+const entry = computed(() => entries.value.find((e) => e.id === id));
+
+watch(
+  [entry, festivalLoading],
+  ([found, loading]) => {
+    if (loading) return;
+    if (!found) navigateTo("/", { replace: true });
+  },
+  { immediate: true },
+);
+
+const showToast = ref(false);
+
+const venueMarkers = computed(() => {
+  if (hasDeployedContracts() && metadata.value?.venueMap?.markers?.length) {
+    return metadata.value.venueMap.markers;
+  }
+  return MOCK_VENUE_MAP.markers;
+});
+
+const venueZones = computed(() => {
+  if (hasDeployedContracts() && metadata.value?.venueMap?.zones?.length) {
+    return metadata.value.venueMap.zones;
+  }
+  return DEFAULT_ZONES;
+});
+
+const bookmarked = computed(() => (entry.value ? isBookmarked(entry.value.id) : false));
+
+const nowDate = useNow();
+const ongoing = computed(() => {
+  if (!entry.value) return false;
+  const now = nowDate.value.getTime();
+  const start = new Date(entry.value.start).getTime();
+  const end = new Date(entry.value.end).getTime();
+  return now >= start && now < end;
+});
+const ended = computed(() => {
+  if (!entry.value) return false;
+  return nowDate.value.getTime() >= new Date(entry.value.end).getTime();
+});
+
+const speakerLabel = computed(() => entry.value?.speakers.join(", ") ?? "");
+
+const timeRange = computed(() => {
+  if (!entry.value) return "";
+  const start = parseFestivalDate(entry.value.start);
+  const end = parseFestivalDate(entry.value.end);
+  return `${formatTime(start)} - ${formatTime(end)}`;
+});
+
+const dayLabel = computed(() => {
+  if (!entry.value) return "";
+  const start = parseFestivalDate(entry.value.start);
+  if (isSameDay(start, nowDate.value)) return "";
+  return formatDay(start);
+});
+
+const locationLabel = computed(() => {
+  if (!entry.value?.venueMarkerId) return "";
+  return getMarkerLocationLabel(entry.value.venueMarkerId, venueMarkers.value);
+});
+
+const imageUrl = computed(() => {
+  const cid = metadata.value?.festivalPoapImage || metadata.value?.image;
+  return cid ? cidToGatewayUrl(cid) : null;
+});
+
+function formatTime(d: Date): string {
+  return formatTimeBerlin(d);
+}
+
+function formatDay(d: Date): string {
+  return formatDateBerlin(d, { weekday: "long", month: "long", day: "numeric" });
+}
+
+function handleToggle() {
+  if (!entry.value) return;
+  const wasBookmarked = isBookmarked(entry.value.id);
+  toggleBookmark(entry.value.id, {
+    startMs: parseFestivalDate(entry.value.start).getTime(),
+    title: entry.value.title,
+    deeplink: `/#/program/${entry.value.id}`,
+    location: locationLabel.value || undefined,
+  });
+  if (!wasBookmarked) {
+    showToast.value = true;
+  }
+}
+</script>
+
+<template>
+  <SessionDetailLayout
+    v-if="entry"
+    :image-url="imageUrl"
+    :banner-value="speakerLabel"
+    banner-label="Speaker"
+    category="Official"
+    :title="entry.title"
+    :description="entry.description"
+    :day-label="dayLabel"
+    :time-range="timeRange"
+    :location-label="locationLabel"
+    :location="entry.venueMarkerId ?? null"
+    :venue-markers="venueMarkers"
+    :venue-zones="venueZones"
+    :bookmarked="isCheckedIn ? bookmarked : null"
+    :ongoing="ongoing"
+    :ended="ended"
+    @toggle-bookmark="handleToggle"
+  />
+
+  <div
+    class="fixed left-4 right-4 md:left-[calc(var(--col-l)+1rem)] md:right-[calc(var(--col-r)+1rem)] z-[1000] pointer-events-none"
+    style="bottom: calc(var(--safe-bottom) + 1.5rem)"
+  >
+    <SuccessToast :visible="showToast" @hide="showToast = false" />
+  </div>
+</template>

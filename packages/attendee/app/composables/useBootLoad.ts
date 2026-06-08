@@ -1,0 +1,323 @@
+import { batchRead } from '@festival/shared/contracts/multicall'
+import { FestivalABI, FestivalSessionABI, AttendancePOAPABI } from '@festival/shared/contracts/abis'
+import {
+  FESTIVAL_ADDRESS,
+  FESTIVAL_POAP_ADDRESS,
+  SUB_EVENT_POAP_ADDRESS,
+} from '@festival/shared/contracts/addresses'
+import {
+  hasDeployedContracts,
+  isNonZeroCid,
+} from '@festival/shared/contracts/festival-reads'
+import type { FestivalDetails, SessionDetails, POAPData } from '@festival/shared/contracts/types'
+import type { FestivalMetadata, SubEventMetadata } from '@festival/shared/metadata/schemas'
+import { hydrateSubEventMetadata } from '@festival/shared/metadata/schemas'
+import { useBulletinStorage } from '@festival/shared/metadata/bulletin'
+import { fetchInChunks } from '@festival/shared/utils/chunked'
+import { festivalState, hydrateFromCache, persistToCache, type SessionEntry } from '@festival/shared/cache/festival-state'
+
+interface BootLoadOptions {
+  /** Block tag for the chain reads. Default 'best' for snappy UX. */
+  at?: 'best' | 'finalized'
+}
+
+/**
+ * Cold-load the entire festival state in up to three Multicall3 round-trips.
+ * Each round is keyed on the previous round's results:
+ *
+ * R1 — independent reads: festival details, attendees, ticketOf, session list,
+ *      festival POAP token ids.
+ * R2 — per session (details, attendees, POAP token list) and per festival POAP
+ *      token (getPOAPData).
+ * R3 — per session POAP token (getPOAPData), only when any exist.
+ */
+export async function bootLoadAttendee(
+  userAddress: `0x${string}` | null,
+  options: BootLoadOptions = {},
+): Promise<void> {
+  if (!hasDeployedContracts()) return
+
+  festivalState.loading = true
+  festivalState.error = null
+  festivalState.user.address = userAddress
+
+  // Cache-first paint. Show last-known data instantly while chain reads run.
+  await hydrateFromCache(FESTIVAL_ADDRESS, userAddress)
+
+  try {
+    const r1 = await runRound1(userAddress, options.at)
+    const r2 = await runRound2(r1.sessionAddrs, r1.festPoapTokenIds, userAddress, options.at)
+    if (r2.allSessionPoapTokenIds.length > 0) {
+      await runRound3(r2.allSessionPoapTokenIds, userAddress, options.at)
+    }
+    festivalState.loaded = true
+    void persistToCache(FESTIVAL_ADDRESS, userAddress)
+  } catch (e) {
+    festivalState.error = e instanceof Error ? e.message : String(e)
+    console.warn('[bootLoadAttendee] failed:', e)
+  } finally {
+    festivalState.loading = false
+  }
+}
+
+interface Round1Result {
+  sessionAddrs: readonly `0x${string}`[]
+  festPoapTokenIds: readonly bigint[]
+}
+
+async function runRound1(
+  userAddress: `0x${string}` | null,
+  at?: 'best' | 'finalized',
+): Promise<Round1Result> {
+  // ticketOf needs an address; fall back to the zero address when the wallet
+  // isn't connected so the call still encodes (the result is discarded).
+  const userArg = userAddress ?? ('0x0000000000000000000000000000000000000000' as `0x${string}`)
+
+  const calls = [
+    { address: FESTIVAL_ADDRESS, abi: FestivalABI, functionName: 'getEventDetails' },
+    { address: FESTIVAL_ADDRESS, abi: FestivalABI, functionName: 'getAttendees' },
+    { address: FESTIVAL_ADDRESS, abi: FestivalABI, functionName: 'ticketOf', args: [userArg] },
+    { address: FESTIVAL_ADDRESS, abi: FestivalABI, functionName: 'getSessions' },
+    { address: FESTIVAL_POAP_ADDRESS, abi: AttendancePOAPABI, functionName: 'getTokensBySource', args: [FESTIVAL_ADDRESS] },
+  ] as const
+
+  const [
+    detailsRaw,
+    attendeesRaw,
+    ticketRaw,
+    sessionsRaw,
+    festPoapTokensRaw,
+  ] = (await batchRead(calls as unknown as Parameters<typeof batchRead>[0], { at })) as [
+    readonly [
+      `0x${string}`, `0x${string}`, `0x${string}`, `0x${string}`,
+      bigint, bigint,
+      boolean, number,
+      boolean, bigint,
+    ],
+    readonly [`0x${string}`[], boolean[]],
+    bigint,
+    readonly `0x${string}`[],
+    readonly bigint[],
+  ]
+
+  const details: FestivalDetails = {
+    metadataCid: detailsRaw[0],
+    creator: detailsRaw[1],
+    festivalPoapContract: detailsRaw[2],
+    sessionPoapContract: detailsRaw[3],
+    startTime: detailsRaw[4],
+    endTime: detailsRaw[5],
+    sessionsEnabled: detailsRaw[6],
+    capacity: detailsRaw[7],
+    cancelled: detailsRaw[8],
+    registeredCount: detailsRaw[9],
+  }
+
+  const attendees = attendeesRaw[0].map((address, i) => ({
+    address,
+    isCheckedIn: attendeesRaw[1][i] ?? false,
+  }))
+
+  // Metadata is fetched off-chain (Bulletin) below and stays null until it lands.
+  festivalState.festival = {
+    address: FESTIVAL_ADDRESS,
+    details,
+    metadata: festivalState.festival?.metadata ?? null,
+    attendees,
+  }
+
+  festivalState.user.ticketTokenId = ticketRaw
+
+  // Stub session entries up front so consumers (e.g. the session detail page)
+  // can resolve `getByAddress(addr)` immediately; R2 fills in the details.
+  festivalState.sessions = sessionsRaw.map((address) => ({
+    address,
+    details: {
+      metadataCid: '0x0000000000000000000000000000000000000000000000000000000000000000' as `0x${string}`,
+      creator: '0x0000000000000000000000000000000000000000' as `0x${string}`,
+      poapContract: '0x0000000000000000000000000000000000000000' as `0x${string}`,
+      parentFestival: FESTIVAL_ADDRESS,
+      startTime: 0n,
+      endTime: 0n,
+      cancelled: false,
+      registeredCount: 0n,
+    },
+    metadata: null,
+    attendees: [],
+    poapTokenIds: [],
+  }))
+
+  // Off-chain fetch; doesn't count against the chainHead rate budget. Fire and forget.
+  if (isNonZeroCid(details.metadataCid)) {
+    void fetchFestivalMetadata(details.metadataCid)
+  }
+
+  return {
+    sessionAddrs: sessionsRaw,
+    festPoapTokenIds: festPoapTokensRaw,
+  }
+}
+
+interface Round2Result {
+  /** Token ids across all sessions, used as input to R3. */
+  allSessionPoapTokenIds: { sessionAddr: `0x${string}`; tokenIds: bigint[] }[]
+}
+
+async function runRound2(
+  sessionAddrs: readonly `0x${string}`[],
+  festPoapTokenIds: readonly bigint[],
+  userAddress: `0x${string}` | null,
+  at?: 'best' | 'finalized',
+): Promise<Round2Result> {
+  if (sessionAddrs.length === 0 && festPoapTokenIds.length === 0) {
+    return { allSessionPoapTokenIds: [] }
+  }
+
+  // One Multicall: per-session details/attendees/POAP-token-list, plus
+  // getPOAPData for each festival POAP token.
+  const sessionCalls = sessionAddrs.flatMap((addr) => [
+    { address: addr, abi: FestivalSessionABI, functionName: 'getEventDetails' },
+    { address: addr, abi: FestivalSessionABI, functionName: 'getAttendees' },
+    { address: SUB_EVENT_POAP_ADDRESS, abi: AttendancePOAPABI, functionName: 'getTokensBySource', args: [addr] },
+  ])
+  const festPoapCalls = festPoapTokenIds.map((id) => ({
+    address: FESTIVAL_POAP_ADDRESS,
+    abi: AttendancePOAPABI,
+    functionName: 'getPOAPData',
+    args: [id],
+  }))
+
+  const calls = [...sessionCalls, ...festPoapCalls]
+  const results = await batchRead(calls, { at })
+
+  // 3 calls per session.
+  const STRIDE = 3
+  const sessionEntries: SessionEntry[] = sessionAddrs.map((address, i) => {
+    const off = i * STRIDE
+    const detailsRaw = results[off] as readonly [
+      `0x${string}`, `0x${string}`, `0x${string}`, `0x${string}`,
+      bigint, bigint,
+      boolean, bigint,
+    ]
+    const attendeesRaw = results[off + 1] as readonly [`0x${string}`[], boolean[]]
+    const tokenIds = results[off + 2] as readonly bigint[]
+
+    const details: SessionDetails = {
+      metadataCid: detailsRaw[0],
+      creator: detailsRaw[1],
+      poapContract: detailsRaw[2],
+      parentFestival: detailsRaw[3],
+      startTime: detailsRaw[4],
+      endTime: detailsRaw[5],
+      cancelled: detailsRaw[6],
+      registeredCount: detailsRaw[7],
+    }
+
+    return {
+      address,
+      details,
+      metadata: null,
+      attendees: attendeesRaw[0].map((a, idx) => ({
+        address: a,
+        isCheckedIn: attendeesRaw[1][idx] ?? false,
+      })),
+      poapTokenIds: [...tokenIds],
+    }
+  })
+
+  festivalState.sessions = sessionEntries
+
+  // Festival POAP data, filtered to the connected user.
+  const festPoapDataOffset = sessionAddrs.length * STRIDE
+  const userLower = userAddress?.toLowerCase() ?? null
+  festivalState.user.festivalPoaps = festPoapTokenIds
+    .map((tokenId, idx) => {
+      const data = results[festPoapDataOffset + idx] as POAPData
+      return { poapContract: FESTIVAL_POAP_ADDRESS, tokenId, data }
+    })
+    .filter((entry) =>
+      userLower ? entry.data.attendee.toLowerCase() === userLower : false,
+    )
+
+  // Per-session Bulletin metadata fetches; off-chain, no chainHead rate cost.
+  const metadataTargets = sessionEntries.filter((e) => isNonZeroCid(e.details.metadataCid))
+  void fetchInChunks(metadataTargets, (e) =>
+    fetchSessionMetadata(e.address, e.details.metadataCid),
+  )
+
+  // Token ids with a back-pointer to their session, feeding R3.
+  const allSessionPoapTokenIds = sessionEntries
+    .filter((e) => e.poapTokenIds.length > 0)
+    .map((e) => ({ sessionAddr: e.address, tokenIds: e.poapTokenIds }))
+
+  return { allSessionPoapTokenIds }
+}
+
+async function runRound3(
+  bundles: { sessionAddr: `0x${string}`; tokenIds: bigint[] }[],
+  userAddress: `0x${string}` | null,
+  at?: 'best' | 'finalized',
+): Promise<void> {
+  // SessionPOAP is one shared contract, so only the token id varies.
+  const calls = bundles.flatMap(({ tokenIds }) =>
+    tokenIds.map((id) => ({
+      address: SUB_EVENT_POAP_ADDRESS,
+      abi: AttendancePOAPABI,
+      functionName: 'getPOAPData',
+      args: [id],
+    })),
+  )
+
+  if (calls.length === 0) return
+
+  const results = await batchRead(calls, { at })
+
+  // Reconstruct in call-list order.
+  const userLower = userAddress?.toLowerCase() ?? null
+  const flat: { tokenId: bigint; data: POAPData }[] = []
+  let i = 0
+  for (const { tokenIds } of bundles) {
+    for (const tokenId of tokenIds) {
+      flat.push({ tokenId, data: results[i] as POAPData })
+      i++
+    }
+  }
+
+  festivalState.user.sessionPoaps = flat
+    .filter((f) =>
+      userLower ? f.data.attendee.toLowerCase() === userLower : false,
+    )
+    .map((f) => ({
+      poapContract: SUB_EVENT_POAP_ADDRESS,
+      tokenId: f.tokenId,
+      data: f.data,
+    }))
+}
+
+async function fetchSessionMetadata(
+  sessionAddr: `0x${string}`,
+  cid: `0x${string}`,
+): Promise<void> {
+  try {
+    const { retrievePlaintext } = useBulletinStorage()
+    const raw = await retrievePlaintext<SubEventMetadata>(cid)
+    const entry = festivalState.sessions.find((s) => s.address === sessionAddr)
+    if (entry) {
+      entry.metadata = hydrateSubEventMetadata(raw)
+    }
+  } catch (e) {
+    console.warn(`[bootLoadAttendee] session ${sessionAddr.slice(0, 10)} metadata fetch failed:`, e)
+  }
+}
+
+async function fetchFestivalMetadata(cid: `0x${string}`): Promise<void> {
+  try {
+    const { retrievePlaintext } = useBulletinStorage()
+    const meta = await retrievePlaintext<FestivalMetadata>(cid)
+    if (festivalState.festival) {
+      festivalState.festival.metadata = meta
+    }
+  } catch (e) {
+    console.warn('[bootLoadAttendee] festival metadata fetch failed:', e)
+  }
+}

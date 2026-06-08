@@ -1,0 +1,151 @@
+name: Contracts (revive)
+
+# Runs the hardhat e2e suite against a real revive node booted from prebuilt
+# binaries — no cargo build in CI. SDK binaries come from the polkadot-sdk
+# release; the runtime WASM comes from 0xRVE/revive-solo, which exists solely
+# to publish a revive-enabled runtime that boots under polkadot-omni-node in
+# solo dev mode.
+
+on:
+  pull_request:
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contracts.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'contracts/**'
+      - '.github/workflows/contracts.yml'
+
+permissions:
+  contents: read
+
+env:
+  POLKADOT_SDK_TAG: polkadot-stable2603
+  REVIVE_SOLO_TAG: v0.1.1
+  SUBSTRATE_RPC_PORT: 9944
+  ETH_RPC_PORT: 8545
+
+jobs:
+  hardhat-e2e:
+    name: Hardhat e2e on revive
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: contracts/package-lock.json
+
+      # SHA256s are pinned to defend against release-asset replacement. Bumping
+      # POLKADOT_SDK_TAG or REVIVE_SOLO_TAG above requires updating the matching
+      # digest below — recompute with `shasum -a 256 <file>`.
+      - name: Download polkadot-sdk binaries
+        run: |
+          mkdir -p bin
+          for binary in polkadot-omni-node eth-rpc chain-spec-builder; do
+            curl -sSfL --retry 3 --retry-delay 5 -o "bin/$binary" \
+              "https://github.com/paritytech/polkadot-sdk/releases/download/${POLKADOT_SDK_TAG}/$binary"
+            chmod +x "bin/$binary"
+          done
+          {
+            echo "a96cb007f3e32de3b0d77dc25cab324d7067cca26f1a5aad4d05d748cf89e323  bin/polkadot-omni-node"
+            echo "df8462aa78a4940e3b33aecb50509f190002828db80a7089154cb2a05c58da8a  bin/eth-rpc"
+            echo "2e637e486c2893e34fa1e62baa89092e1443a6f88e5179ce8ae0f329e6b63f1f  bin/chain-spec-builder"
+          } | sha256sum -c -
+          echo "$PWD/bin" >> "$GITHUB_PATH"
+
+      - name: Download revive-solo runtime WASM
+        run: |
+          curl -sSfL --retry 3 --retry-delay 5 -o runtime.wasm \
+            "https://github.com/0xRVE/revive-solo/releases/download/${REVIVE_SOLO_TAG}/revive_solo_runtime.compact.compressed.wasm"
+          echo "e73f994bf80c2408572c1b909892c987fa6e020465486248de82435fdf2a9892  runtime.wasm" | sha256sum -c -
+
+      - name: Generate chain spec
+        run: |
+          chain-spec-builder -c spec.json create \
+            --chain-name "Revive Solo" \
+            --chain-id "revive-solo" \
+            -t development \
+            --relay-chain rococo-local \
+            --para-id 5187 \
+            --runtime runtime.wasm \
+            named-preset development
+
+      - name: Boot omni-node
+        run: |
+          nohup polkadot-omni-node \
+            --chain spec.json \
+            --tmp \
+            --alice \
+            --force-authoring \
+            --dev-block-time 3000 \
+            --no-prometheus \
+            --unsafe-force-node-key-generation \
+            --rpc-cors all \
+            --rpc-port "${SUBSTRATE_RPC_PORT}" > omni-node.log 2>&1 &
+
+      - name: Wait for substrate JSON-RPC
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sSf -X POST -H 'content-type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"system_chain","params":[]}' \
+              "http://127.0.0.1:${SUBSTRATE_RPC_PORT}" >/dev/null 2>&1; then
+              echo "substrate RPC up after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "substrate RPC did not come up within 30s"
+          exit 1
+
+      - name: Boot eth-rpc adapter
+        run: |
+          nohup eth-rpc \
+            --node-rpc-url "ws://127.0.0.1:${SUBSTRATE_RPC_PORT}" \
+            --rpc-port "${ETH_RPC_PORT}" \
+            --no-prometheus \
+            --rpc-cors all \
+            --dev > eth-rpc.log 2>&1 &
+
+      - name: Wait for chain to produce blocks
+        run: |
+          for i in $(seq 1 60); do
+            hex=$(curl -sSf -X POST -H 'content-type: application/json' \
+              --data '{"jsonrpc":"2.0","id":1,"method":"eth_blockNumber","params":[]}' \
+              "http://127.0.0.1:${ETH_RPC_PORT}" 2>/dev/null \
+              | sed -n 's/.*"result":"\([^"]*\)".*/\1/p')
+            if [ -n "$hex" ] && [ "$((hex))" -gt 0 ]; then
+              echo "chain producing blocks after ${i}s (head=$hex)"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "chain did not start producing blocks within 60s"
+          exit 1
+
+      - name: Install contracts deps
+        working-directory: contracts
+        run: npm ci
+
+      - name: Run hardhat e2e tests
+        working-directory: contracts
+        env:
+          ETH_RPC_HTTP: http://127.0.0.1:${{ env.ETH_RPC_PORT }}
+        run: npm test
+
+      - name: Upload node logs
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: revive-node-logs
+          path: |
+            omni-node.log
+            eth-rpc.log
+          retention-days: 7

@@ -1,0 +1,279 @@
+/* Venue map styles — consumed by both attendee and admin wrappers.
+ * Paired with venue/map-engine-ml.ts. */
+
+.venue-map {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  outline: none;
+  font-family: inherit;
+}
+
+.venue-map.is-static { cursor: default; }
+
+/* Fullscreen flash overlay used by the outdoor↔indoor transition. The element
+   is appended to the .venue-map container; opacity is animated from JS so the
+   precise mid-flash moment can be used to silently swap floor SVGs. */
+.venue-map__flash {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 800;
+}
+
+/* ── MapLibre engine: DOM overlay layers ── */
+.venue-map__labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 600;
+  /* Promote to its own compositor layer so transforms write on the GPU. */
+  will-change: transform;
+}
+
+/* Marker container — one pane per category so stacking is controlled by
+   z-index rather than DOM order. */
+.venue-map__markers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.venue-map__pane {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.venue-map__pane[data-pane="marker-scenery"]    { z-index: 500; }
+.venue-map__pane[data-pane="marker-emergency"]  { z-index: 560; }
+.venue-map__pane[data-pane="marker-money"]      { z-index: 575; }
+.venue-map__pane[data-pane="marker-service"]    { z-index: 570; }
+.venue-map__pane[data-pane="marker-base"]       { z-index: 580; }
+.venue-map__pane[data-pane="marker-food"]       { z-index: 590; }
+.venue-map__pane[data-pane="marker-activations"]{ z-index: 600; }
+
+/* Outer wrapper receives the JS-set transform; the inner .vmarker handles
+   the centring + visual styling (existing CSS below). */
+.vmarker-root {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* User-spot pin — single instance, sits above all marker panes. */
+.vpin-root {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 660;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Outdoor SVG overlay — sits above the MapLibre canvas, below labels/markers.
+   Engine writes a CSS matrix() transform to keep it aligned with the map's
+   current view (pan + zoom + rotate). */
+.venue-map__overlay-host {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 550;
+  overflow: hidden;
+}
+.venue-map__overlay-svg {
+  /* Intrinsic viewBox dimensions (from the SVG's width/height attributes)
+     must NOT be overridden — the engine's matrix() transform maps
+     (0,0)..(W,H) of the SVG to projected screen corners. CSS width:100%
+     would collapse it to the container and break the matrix math. Width and
+     height are set inline on the element by the engine to match the source
+     viewBox in CSS pixels. */
+  display: block;
+}
+
+/* Invisible test-anchor sized to the outdoor building footprint. Lets e2e
+   tests target the building by `data-testid` selector even though the
+   building itself renders to the MapLibre canvas (Playwright clicks the
+   element's bbox centre, which lands on the canvas and triggers MapLibre's
+   click handler).
+   pointer-events:none so wheel/zoom events pass through to the canvas
+   — otherwise scrolling while the cursor is over the building wouldn't
+   zoom. Real clicks are handled by the canvas `click` listener via
+   queryRenderedFeatures, not by this element. */
+.venue-map__building-target {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 605;
+  pointer-events: none;
+  background: transparent;
+}
+
+/* Zone label rendered above each polygon's pole-of-inaccessibility.
+   Outer element receives the JS-set transform (projected x/y in pixels);
+   inner wrapper applies the visual centring offset so the JS string stays
+   simple. */
+.venue-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+.venue-label__inner {
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: inherit;
+  font-weight: 700;
+  /* Size is driven by the engine via the --venue-label-size CSS variable,
+     interpolated between 10px (fit zoom) and 14px (deeply zoomed in). The
+     fallback 10px keeps labels readable before the engine has set the value. */
+  font-size: var(--venue-label-size, 10px);
+  line-height: 1.1;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.45),
+    0 0 6px rgba(0, 0, 0, 0.35);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Marker (typed) ── */
+.vmarker-root { width: 0 !important; height: 0 !important; overflow: visible !important; }
+
+.vmarker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+  transition: transform 150ms ease, opacity 150ms ease;
+  transform-origin: center;
+  will-change: transform;
+  pointer-events: auto;
+}
+
+.vmarker__icon {
+  width: var(--vmarker-icon-size, 28px);
+  height: var(--vmarker-icon-size, 28px);
+  transition: width 150ms ease, height 150ms ease;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+.vmarker__icon > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.vmarker__label {
+  padding: 2px 8px;
+  background: #ffffff;
+  color: #0f0f0f;
+  border-radius: 9999px;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Hide labels on service/emergency/scenery entirely — icon-only categories. */
+.vmarker[data-category="service"] .vmarker__label,
+.vmarker[data-category="emergency"] .vmarker__label,
+.vmarker[data-category="scenery"] .vmarker__label { display: none; }
+
+/* Scenery: map ornaments, not destinations. Don't suggest interactivity. */
+.vmarker[data-category="scenery"] { cursor: default; }
+
+/* ── Zoom tier sizing ── */
+/* Tier 3 = base reveal; labels visible on labeled categories. */
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="base"],
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="food"],
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="activations"] { --vmarker-icon-size: 28px; }
+
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="base"],
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="food"],
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="activations"] { --vmarker-icon-size: 32px; }
+
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="base"] .vmarker__label,
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="food"] .vmarker__label,
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="activations"] .vmarker__label { font-size: 12px; }
+
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="service"],
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="emergency"] { --vmarker-icon-size: 18px; }
+
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="service"],
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="emergency"] { --vmarker-icon-size: 24px; }
+
+/* Scenery: small ornament size, scales mildly with zoom. */
+.venue-map[data-zoom-tier="0"] .vmarker[data-category="scenery"] { --vmarker-icon-size: 14px; }
+.venue-map[data-zoom-tier="1"] .vmarker[data-category="scenery"] { --vmarker-icon-size: 16px; }
+.venue-map[data-zoom-tier="2"] .vmarker[data-category="scenery"] { --vmarker-icon-size: 18px; }
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="scenery"] { --vmarker-icon-size: 20px; }
+.venue-map[data-zoom-tier="4"] .vmarker[data-category="scenery"] { --vmarker-icon-size: 22px; }
+
+/* ── Zoom tier reveal (progressive visibility) ──
+ * Tier 0 (default fit): stages (with labels) + food (icon-only, smaller)
+ * Tier 1+: + activations + other base types + food labels
+ * Tier 4: + service + emergency
+ */
+/* Tier 0: hide non-stage base + activations. */
+.venue-map[data-zoom-tier="0"] .vmarker[data-category="base"]:not([data-type="stage"]),
+.venue-map[data-zoom-tier="0"] .vmarker[data-category="activations"] { opacity: 0; pointer-events: none; }
+
+/* Tier 0: food shows icon only, slightly smaller. */
+.venue-map[data-zoom-tier="0"] .vmarker[data-category="food"] { --vmarker-icon-size: 22px; }
+.venue-map[data-zoom-tier="0"] .vmarker[data-category="food"] .vmarker__label { display: none; }
+
+/* Service + emergency hidden until tier 4. */
+.venue-map[data-zoom-tier="0"] .vmarker[data-category="service"],
+.venue-map[data-zoom-tier="0"] .vmarker[data-category="emergency"],
+.venue-map[data-zoom-tier="1"] .vmarker[data-category="service"],
+.venue-map[data-zoom-tier="1"] .vmarker[data-category="emergency"],
+.venue-map[data-zoom-tier="2"] .vmarker[data-category="service"],
+.venue-map[data-zoom-tier="2"] .vmarker[data-category="emergency"],
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="service"],
+.venue-map[data-zoom-tier="3"] .vmarker[data-category="emergency"] { opacity: 0; pointer-events: none; }
+
+/* Focused / selected marker always visible regardless of tier, and scaled up. */
+.vmarker.is-selected {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translate(-50%, -50%) scale(1.15);
+  z-index: 1000 !important;
+}
+.vmarker.is-selected .vmarker__icon {
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.35));
+}
+
+/* ── User pin (red teardrop). ── */
+.vpin-root { width: 0 !important; height: 0 !important; overflow: visible !important; }
+.vpin {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* anchor at tip: offset so the SVG's (34, 66) sits at the map point */
+  transform: translate(-34px, -66px);
+  width: 68px;
+  height: 77px;
+  pointer-events: none;
+}
+.vpin > svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+

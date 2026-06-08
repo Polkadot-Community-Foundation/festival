@@ -1,0 +1,368 @@
+@import 'tailwindcss';
+@import './themes/berlin-day.css';
+@import './themes/lisbon.css';
+@import './themes/malta.css';
+@import './themes/tokyo.css';
+
+/*
+ * Self-hosted Inter (variable, wght 100-900), replacing the former Google Fonts
+ * @import. Inter v20, subsets latin + latin-ext, downloaded from fonts.gstatic.com;
+ * files live in packages/shared/public/fonts (served at /fonts by both apps via
+ * nitro.publicAssets). License: SIL OFL 1.1 (https://github.com/rsms/inter).
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-v20-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-v20-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* iOS-mirrored theme tokens. BerlinNight values live here as :root defaults —
+   there's no berlin-night.css because [data-theme="berlin-night"] would just
+   duplicate this block; the cascade falls back here instead. */
+@theme {
+  /* Foreground */
+  --color-fg-error:                       #D9363E;
+  --color-fg-link-hover:                  #78A9FF;
+  --color-fg-link:                        #4D8DFF;
+  --color-fg-tertiary:                    #585B62;
+  --color-fg-secondary:                   #8C8F98;
+  --color-fg-warning:                     #F59E0B;
+  --color-fg-success:                     #22C55E;
+  --color-fg-primary:                     #F4F4F5;
+  --color-fg-primary-inverted:            #0B0C0F;
+  --color-fg-secondary-inverted:          #6F727A;
+  --color-fg-tertiary-inverted:           #8C8F98;
+  --color-fg-static-white:                #FFFFFF;
+  --color-fg-secondary-hover:             #DADBE0;
+  --color-fg-secondary-inverted-hover:    #000000;
+  --color-fg-disabled:                    #585B62;
+
+  /* Background — surface */
+  --color-bg-surface-main:                #0B0C0F;
+  --color-bg-surface-container:           #1A1B20;
+  --color-bg-surface-container-inverted:  #FFFFFF;
+  --color-bg-surface-nested-inverted:     #F4F4F5;
+  --color-bg-surface-overlay:             #0000007A;
+  --color-bg-surface-nested:              #23252A;
+
+  /* Background — selection */
+  --color-bg-selection-container-hover:           #23252A;
+  --color-bg-selection-container-active:          #2C2E34;
+  --color-bg-selection-container-hover-inverted:  #F7F7F8;
+  --color-bg-selection-container-active-inverted: #F4F4F5;
+
+  /* Background — status */
+  --color-bg-status-error:          #D9363E;
+  --color-bg-status-warning:        #F59E0B;
+  --color-bg-status-error-hover:    #B4232F;
+  --color-bg-status-warning-hover:  #FFBB33;
+  --color-bg-status-success:        #16A34A;
+  --color-bg-status-success-hover:  #12803C;
+
+  /* Background — accent */
+  --color-bg-accent: #4D8DFF;
+
+  /* Background — action */
+  --color-bg-action-primary:                  #DADBE0;
+  --color-bg-action-secondary:                #404249;
+  --color-bg-action-primary-inverted:         #0B0C0F;
+  --color-bg-action-secondary-inverted:       #C9CAD0;
+  --color-bg-action-primary-hover:            #C9CAD0;
+  --color-bg-action-secondary-hover:          #2C2E34;
+  --color-bg-action-primary-inverted-hover:   #23252A;
+  --color-bg-action-secondary-inverted-hover: #A9ABB3;
+  --color-bg-action-tertiary:                 #2C2E34;
+  --color-bg-action-tertiary-hover:           #404249;
+  --color-bg-action-tertiary-inverted:        #F4F4F5;
+  --color-bg-action-tertiary-inverted-hover:  #DADBE0;
+  --color-bg-action-active:                   #585B62;
+  --color-bg-action-disabled:                 #2C2E34;
+  --color-bg-action-error:                    #3B0D10;
+
+  /* Background — illustration */
+  --color-bg-illustration-dark:        #DADBE0;
+  --color-bg-illustration-light:       #1A1B20;
+  --color-bg-illustration-dark-muted:  #585B62;
+  --color-bg-illustration-light-muted: #585B62;
+
+  /* Stroke */
+  --color-stroke-primary:          #23252A;
+  --color-stroke-error:            #D9363E;
+  --color-stroke-warning:          #F59E0B;
+  --color-stroke-success:          #22C55E;
+  --color-stroke-tertiary:         #8C8F98;
+  --color-stroke-primary-inverted: #DADBE0;
+  --color-stroke-secondary:        #404249;
+  --color-stroke-cutout:           #000000;
+
+  /* Focus */
+  --color-focus-error: #D9363E3D;
+  --color-focus-ring:  #FFFFFF29;
+
+  /* Shadow */
+  --color-shadow-soft:   #0000003D;
+  --color-shadow-medium: #0000007A;
+
+  /* Avatar — background */
+  --color-avatar-bg-amethyst:  #7C3AED;
+  --color-avatar-bg-opal:      #1E1B4B;
+  --color-avatar-bg-turquoise: #0891B2;
+  --color-avatar-bg-onyx:      #1E293B;
+  --color-avatar-bg-pearl:     #262626;
+  --color-avatar-bg-emerald:   #064E3B;
+  --color-avatar-bg-topaz:     #C2410C;
+  --color-avatar-bg-ruby:      #9F1239;
+  --color-avatar-bg-sapphire:  #1E3A8A;
+  --color-avatar-bg-garnet:    #7F1D1D;
+
+  /* Avatar — foreground */
+  --color-avatar-fg-amethyst:  #EDE9FE;
+  --color-avatar-fg-opal:      #A5B4FC;
+  --color-avatar-fg-turquoise: #CFFAFE;
+  --color-avatar-fg-onyx:      #E5E7EB;
+  --color-avatar-fg-pearl:     #F5F5F5;
+  --color-avatar-fg-emerald:   #D1FAE5;
+  --color-avatar-fg-topaz:     #FFEDD5;
+  --color-avatar-fg-ruby:      #FFE4E6;
+  --color-avatar-fg-sapphire:  #DBEAFE;
+  --color-avatar-fg-garnet:    #FEE2E2;
+  --color-avatar-fg-amethyst-2: #EDE9FE;
+
+  /* Gradient */
+  --color-gradient-navigation-overlay-start: #000000CC;
+  --color-gradient-navigation-overlay-end:   #00000000;
+}
+
+/* App-wide tokens. Names don't overlap with the iOS-mirrored block above —
+   keep the two blocks separate. */
+@theme {
+  /* ── Surfaces ── */
+  --color-background:       #000000;
+  --color-surface:          #141414;
+  --color-surface-2:        #1f1f1f;
+  --color-surface-3:        #2a2a2a;
+  --color-surface-4:        #3a3a3a;
+  --color-surface-elevated: #ffffff;
+
+  /* ── Text ── */
+  --color-text-primary:     #fafaf9;
+  --color-text-secondary:   #d6d3d1;
+  --color-text-muted:       #a8a29e;
+
+  /* ── Semantic text/icon tokens (Figma: Text and Icons) ── */
+  --color-text-and-icons-primary:   #ffffff;
+  --color-text-and-icons-secondary: rgba(255, 255, 255, 0.69);
+  --color-text-and-icons-tertiary:  rgba(255, 255, 255, 0.40);
+
+  /* ── Borders ── */
+  --color-border:           #292524;
+  --color-border-light:     rgba(255, 255, 255, 0.12);
+
+  /* ── Brand (neutral stone — keeps existing bg-primary/text-primary usages safe) ── */
+  --color-primary:          #57534e;
+  --color-primary-hover:    #78716c;
+  --color-primary-light:    #1c1917;
+
+  /* ── Accent colors ── */
+  --color-violet:           #7916f3;
+  --color-violet-light:     #2d1466;
+  --color-light-blue-violet: #7365FF;
+  --color-community:        #9462FA;
+  --color-magenta:          #C600AA;
+  --color-olive:            #728806;
+  --color-lime:             #e4ff07;
+  --color-cyan:             #07ffff;
+
+  /* ── Status ── */
+  --color-success:          #35c759;
+  --color-success-muted:    #1a3d26;
+  --color-danger:           #ff3123;
+  --color-danger-muted:     #3d1a1a;
+  --color-warning:          #ff9500;
+  --color-warning-muted:    #3d2a00;
+
+  /* ── Passport ── */
+  --color-passport-band-not-checked-in: #EF4444;
+
+  /* ── Passport typography (Akkurat Mono, Regular) ── */
+  --text-passport-band-checked-in:                  18px;
+  --text-passport-band-checked-in--line-height:     16px;
+  --text-passport-band-not-checked-in:              20.52px;
+  --text-passport-band-not-checked-in--line-height: 14.2px;
+  --text-passport-caption:                          16px;
+  --text-passport-caption--line-height:             32px;
+
+  /* ── Onboarding typography ── */
+  --text-onboarding-title:                          32px;
+  --text-onboarding-title--line-height:             38px;
+
+  /* ── Stone scale ── */
+  --color-stone-50:         #fafaf9;
+  --color-stone-100:        #f5f5f4;
+  --color-stone-200:        #e7e5e4;
+  --color-stone-300:        #d6d3d1;
+  --color-stone-400:        #a8a29e;
+  --color-stone-500:        #78716c;
+  --color-stone-600:        #57534e;
+  --color-stone-700:        #44403c;
+  --color-stone-800:        #292524;
+  --color-stone-900:        #1c1917;
+  --color-stone-950:        #0c0a09;
+
+  /* ── Violet scale ── */
+  --color-violet-50:        #f3f0ff;
+  --color-violet-100:       #e9e3ff;
+  --color-violet-200:       #d6ccff;
+  --color-violet-300:       #b8a6ff;
+  --color-violet-400:       #9575ff;
+  --color-violet-500:       #7916f3;
+  --color-violet-600:       #6b14db;
+  --color-violet-700:       #5c12b8;
+  --color-violet-800:       #4d1096;
+  --color-violet-900:       #410f7a;
+
+  /* ── Fonts ── */
+  --font-heading:           'Inter', sans-serif;
+  --font-body:              'Inter', sans-serif;
+  /* Unbounded is not loaded (was unused); font-display falls back to sans-serif */
+  --font-display:           'Unbounded', sans-serif;
+  --font-mono:              'Akkurat Mono', monospace;
+
+  /* ── Radius ── */
+  --radius-sm:              2px;
+  --radius-md:              6px;
+  --radius-lg:              8px;
+  --radius-xl:              12px;
+  --radius-2xl:             16px;
+  --radius-3xl:             24px;
+
+  /* ── Shadows (minimal on dark surfaces) ── */
+  --shadow-sm:              0 1px 2px 0 rgb(0 0 0 / 0.3);
+  --shadow-md:              0 2px 8px 0 rgb(0 0 0 / 0.5);
+  --shadow-lg:              0 4px 24px 0 rgb(0 0 0 / 0.7);
+}
+
+@layer base {
+  :root {
+    /* Desktop three-column bounds (see docs/desktop-layout.md).
+       Below md these are no-ops (column spans the viewport). */
+    --col-l: 0px;
+    --col-w: 100vw;
+    --col-r: 0px;
+
+    /* Safe-area insets. The Polkadot host now renders the root SPA full-bleed
+       (polkadot-app-ios-v2 53aa54a — webView pinned to `edges.equalToSuperview`
+       with scrollable contentInset), so the webview paints under the status bar
+       and home indicator. Combined with our `viewport-fit=cover` meta, WebKit
+       now reports real `env(safe-area-inset-*)` values, so we wire --safe-bottom
+       to it: every bottom-anchored surface (the tab bar, sheets, floating
+       buttons, map overlays) already pads by --safe-bottom and now clears the
+       home indicator. On web/desktop env() is 0, so this is a no-op there.
+       --safe-top stays 0 for now: the host still owns the top nav chrome, so
+       enabling it would double-count. */
+    --safe-top: 0px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --col-l: 15rem;                                /* sidebar width (w-60) */
+      --col-w: max(28rem, 33.333vw);                 /* middle column: w-1/3 floored at 28rem */
+      --col-r: calc(100vw - var(--col-l) - var(--col-w));
+    }
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  /* App shell takes over scrolling. The document itself never scrolls — the
+     bottom nav is a flex sibling of the scroll area, not a fixed-position
+     overlay, so it's pinned to the visible bottom no matter what iOS
+     WebKit does with momentum, rubber-band, or layout-viewport drift. */
+  html,
+  body {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* The single source of truth for app height. */
+  .app-shell {
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-background);
+  }
+
+  /* When a theme is active (currently only on /onboarding — see
+     plugins/theme.client.ts), the body and app-shell follow the theme's
+     surface-main / fg-primary so no pure-black seam shows around the page
+     wrapper on mobile (where <main> is mx-auto max-w-md px-4). */
+  html[data-theme] body,
+  html[data-theme] .app-shell {
+    background-color: var(--color-bg-surface-main);
+    color: var(--color-fg-primary);
+  }
+
+  /* Alias the app-wide tokens used by components that render on BOTH the
+     festival home AND /onboarding (HomeLocation, etc.) so they follow the
+     active theme without the component knowing about it. Outside /onboarding
+     no [data-theme] is set, so the legacy tokens resolve to their own :root
+     values (festival dark) and the home page renders unchanged. */
+  html[data-theme] {
+    --color-surface-2: var(--color-bg-surface-container);
+    --color-text-and-icons-secondary: var(--color-fg-secondary);
+    --color-text-and-icons-tertiary: var(--color-fg-tertiary);
+  }
+
+  /* The only scroller in the app. `position: sticky` works inside this
+     container — sticks to the scroller, not the viewport. */
+  .app-scroll-area {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  input,
+  select,
+  textarea,
+  button {
+    font-family: inherit;
+  }
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -1,0 +1,9 @@
+{
+  "network": "paseo-next-v2",
+  "sessionsEnabled": true,
+  "domains": {
+    "admin": "myfest-admin.dot",
+    "attendee": "myfest.dot"
+  },
+  "custom": null
+}

@@ -1,0 +1,264 @@
+<script setup lang="ts">
+import type { TimelineItem } from "~/composables/useProgramTimeline";
+import {
+  isItemOngoing,
+  isItemPast,
+  getItemId,
+} from "~/composables/useProgramTimeline";
+import { shortenAddress } from "@festival/shared/utils/address";
+import { ss58ToH160, isValidEvmAddress } from "@festival/shared/utils/address";
+import {
+  getMarkerLocationLabel,
+  resolveLocationLabel,
+} from "@festival/shared/venue/floors";
+import { useWalletStore } from "@festival/shared/host/wallet";
+import { FESTIVAL_ADDRESS } from "@festival/shared/contracts/addresses";
+import { useRegistration } from "~/composables/useRegistration";
+import type { VenueMarker } from "@festival/shared/metadata/schemas";
+import type { BookmarkPayload } from "~/composables/useBookmarks";
+import { useMyListFlyAnimation } from "~/composables/useMyListFlyAnimation";
+import { formatTimeBerlin, parseFestivalDate } from "@festival/shared/utils/time";
+
+const props = defineProps<{
+  item: TimelineItem;
+  venueMarkers?: VenueMarker[];
+  isBookmarked?: boolean;
+  now?: number;
+}>();
+
+const emit = defineEmits<{
+  toggleBookmark: [id: string, payload: BookmarkPayload];
+}>();
+
+const wallet = useWalletStore();
+const { isCheckedIn } = useRegistration(FESTIVAL_ADDRESS);
+
+const ongoing = computed(() => isItemOngoing(props.item, props.now));
+const past = computed(() => isItemPast(props.item, props.now));
+const itemId = computed(() => getItemId(props.item));
+
+const isOwner = computed(() => {
+  if (props.item.type !== "community" || !wallet.isConnected) return false;
+  const userH160 = isValidEvmAddress(wallet.address)
+    ? wallet.address.toLowerCase()
+    : ss58ToH160(wallet.address).toLowerCase();
+  return props.item.subEvent.creator.toLowerCase() === userH160;
+});
+
+const accentColor = computed(() => {
+  if (past.value) return "#44403c"; // stone-700
+  if (props.item.type === "community") return "#9462FA"; // --color-community
+  // official (ongoing or upcoming). Always white
+  return "#fafaf9"; // text-primary
+});
+
+const cardClass = computed(() => {
+  if (past.value) return "bg-transparent border-white/10";
+  if (isOwner.value) return "bg-white border-white/0";
+  return "bg-surface-2 border-black hover:bg-surface-3";
+});
+
+const title = computed(() =>
+  props.item.type === "official"
+    ? props.item.entry.title
+    : props.item.subEvent.metadata.name,
+);
+
+const subtitle = computed(() => {
+  if (props.item.type === "official") {
+    return props.item.entry.speakers.join(", ");
+  }
+  if (isOwner.value) return "My Session";
+  return shortenAddress(props.item.subEvent.creator);
+});
+
+const timeRange = computed(() => {
+  if (props.item.type === "official") {
+    const start = parseFestivalDate(props.item.entry.start);
+    const end = parseFestivalDate(props.item.entry.end);
+    return `${formatTime(start)} - ${formatTime(end)}`;
+  }
+  const start = new Date(props.item.subEvent.startTime * 1000);
+  const end = new Date(props.item.subEvent.endTime * 1000);
+  return `${formatTime(start)} - ${formatTime(end)}`;
+});
+
+const venueLabel = computed(() => {
+  if (!props.venueMarkers?.length) return "";
+  if (props.item.type === "official" && props.item.entry.venueMarkerId) {
+    return getMarkerLocationLabel(
+      props.item.entry.venueMarkerId,
+      props.venueMarkers,
+    );
+  }
+  if (
+    props.item.type === "community" &&
+    props.item.subEvent.metadata.location
+  ) {
+    return resolveLocationLabel(
+      props.item.subEvent.metadata.location,
+      props.venueMarkers!,
+    );
+  }
+  return "";
+});
+
+const detailRoute = computed(() => {
+  if (props.item.type === "official") return `/program/${props.item.entry.id}`;
+  return `/sessions/${props.item.subEvent.address}`;
+});
+
+const bookmarkPayload = computed<BookmarkPayload>(() => ({
+  startMs:
+    props.item.type === "official"
+      ? parseFestivalDate(props.item.entry.start).getTime()
+      : props.item.subEvent.startTime * 1000,
+  title: title.value,
+  deeplink: `/#${detailRoute.value}`,
+  location: venueLabel.value || undefined,
+}));
+
+const editRoute = computed(() => {
+  if (props.item.type !== "community") return "";
+  return `/my/manage/${props.item.subEvent.address}/edit`;
+});
+
+// Text color helpers. Owner cards have dark text on white bg
+const titleClass = computed(() => {
+  if (past.value) return "text-text-and-icons-primary";
+  if (isOwner.value) return "text-black";
+  return "text-text-primary";
+});
+
+const mutedClass = computed(() => {
+  if (past.value) return "text-text-and-icons-secondary";
+  if (isOwner.value) return "text-black/50";
+  return "text-text-muted";
+});
+
+const timeClass = computed(() => {
+  if (past.value) return 'text-text-and-icons-secondary'
+  if (isOwner.value) return 'text-black'
+  if (ongoing.value) return 'text-text-and-icons-primary'
+  return 'text-text-muted'
+})
+
+function formatTime(d: Date): string {
+  return formatTimeBerlin(d);
+}
+
+const { flyToCounter } = useMyListFlyAnimation();
+
+function onStarTap(e: MouseEvent) {
+  const adding = !props.isBookmarked;
+  if (adding) {
+    const trigger = e.currentTarget as HTMLElement;
+    const card = trigger.closest(
+      '[data-testid="program-card"]',
+    ) as HTMLElement | null;
+    if (card)
+      flyToCounter(card, { title: title.value, subtitle: timeRange.value });
+  }
+  emit("toggleBookmark", itemId.value, bookmarkPayload.value);
+}
+</script>
+
+<template>
+  <NuxtLink
+    :to="detailRoute"
+    class="block rounded-xl p-3 border transition-colors"
+    :class="cardClass"
+    data-testid="program-card"
+  >
+    <div class="flex items-start gap-2.5">
+      <!-- Left accent bar -->
+      <div
+        class="w-[3px] shrink-0 self-stretch rounded-full my-0.5"
+        :style="{ backgroundColor: accentColor }"
+      />
+      <div class="flex-1 min-w-0">
+        <!-- Title row with ongoing dot -->
+        <div class="flex items-start gap-1.5">
+          <span
+            v-if="ongoing"
+            class="w-1.5 h-1.5 rounded-full shrink-0 bg-danger mt-1.5"
+          />
+          <p
+            class="text-sm font-medium line-clamp-3 leading-snug"
+            :class="titleClass"
+          >
+            {{ title }}
+          </p>
+        </div>
+
+        <!-- Speaker / creator / My Session -->
+        <p v-if="subtitle" class="text-xs mt-0.5" :class="mutedClass">
+          {{ subtitle }}
+        </p>
+
+        <!-- Time + venue -->
+        <p class="text-xs mt-2">
+          <span :class="timeClass">{{ timeRange }}<span v-if="past"> Ended </span></span>
+          <span v-if="venueLabel" :class="mutedClass">&nbsp;&nbsp;{{ venueLabel }}</span>
+        </p>
+      </div>
+
+      <!-- Right action: pencil for owner, star for others -->
+      <template v-if="!past">
+        <!-- Owner: pencil edit icon -->
+        <NuxtLink
+          v-if="isOwner"
+          :to="editRoute"
+          class="shrink-0 p-1 -mr-1 mt-0.5"
+          @click.stop
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <path
+              d="M3 17.46v3.04c0 .28.22.5.5.5h3.04c.13 0 .26-.05.35-.15L17.81 9.94l-3.75-3.75L3.15 17.1a.49.49 0 0 0-.15.36Z"
+              fill="black"
+            />
+            <path
+              d="M20.71 5.63l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83a1 1 0 0 0 0-1.41Z"
+              fill="black"
+            />
+          </svg>
+        </NuxtLink>
+
+        <!-- Non-owner: bookmark star -->
+        <button
+          v-else-if="isCheckedIn"
+          class="shrink-0 p-1 -mr-1 mt-0.5 transition-colors program-card-star"
+          :class="[
+            isBookmarked
+              ? 'text-text-primary program-card-star--filled'
+              : 'text-stone-600',
+          ]"
+          @click.prevent.stop="onStarTap"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            :fill="isBookmarked ? 'currentColor' : 'none'"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+            />
+          </svg>
+        </button>
+      </template>
+    </div>
+  </NuxtLink>
+</template>
+
+<style scoped>
+.program-card-star {
+  transition: transform 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.program-card-star--filled {
+  transform: scale(1.15);
+}
+</style>

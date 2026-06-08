@@ -1,0 +1,172 @@
+name: E2E Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+# Serialize runs per branch/PR — the seed job hammers the same shared
+# DEPLOYER_SEED account on paseo-next-v2; two runs in flight at once race
+# its nonce and one gets InvalidTransaction::Stale.
+concurrency:
+  group: e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Single seed job — deploys + seeds once. Eliminates the deployer nonce race
+  # that hit when admin + attendee ran the same seed in parallel.
+  seed:
+    runs-on: ubuntu-latest
+    name: Seed test festival
+    outputs:
+      vite_festival_address: ${{ steps.seed.outputs.vite_festival_address }}
+      vite_festival_poap_address: ${{ steps.seed.outputs.vite_festival_poap_address }}
+      vite_sub_event_poap_address: ${{ steps.seed.outputs.vite_sub_event_poap_address }}
+      vite_chain_genesis_hash: ${{ steps.sync.outputs.vite_chain_genesis_hash }}
+      vite_bulletin_genesis_hash: ${{ steps.sync.outputs.vite_bulletin_genesis_hash }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Load environment config
+        run: grep -v '^#' .github/env | grep -v '^$' >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch live network genesis hashes
+        id: sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx tsx scripts/chain/sync-network.ts | tee /tmp/genesis.env
+          # Pipe to $GITHUB_ENV for the seed step, and to $GITHUB_OUTPUT for downstream jobs.
+          cat /tmp/genesis.env >> "$GITHUB_ENV"
+          while IFS='=' read -r key value; do
+            [ -z "$key" ] && continue
+            lower=$(echo "$key" | tr '[:upper:]' '[:lower:]')
+            echo "${lower}=${value}" >> "$GITHUB_OUTPUT"
+          done < /tmp/genesis.env
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build contracts (needed for AttendancePOAP/Festival ABIs+bytecode)
+        working-directory: contracts
+        run: |
+          forge install foundry-rs/forge-std
+          forge install OpenZeppelin/openzeppelin-contracts
+          forge build
+
+      - name: Deploy + seed fresh test festival
+        id: seed
+        env:
+          DEPLOYER_SEED: ${{ secrets.E2E_DEPLOYER_SEED }}
+          NETWORK: paseo-next-v2
+        shell: bash
+        run: |
+          set -euo pipefail
+          # pipefail is critical: without it, `script | tee` reports success
+          # even when the script crashes, leaving downstream jobs with empty
+          # contract-address env vars → they fall back to .github/env's stale
+          # value and tests run against the wrong contract.
+          npx tsx scripts/e2e/deploy-test-festival.ts | tee /tmp/seed.env
+          while IFS='=' read -r key value; do
+            [ -z "$key" ] && continue
+            lower=$(echo "$key" | tr '[:upper:]' '[:lower:]')
+            echo "${lower}=${value}" >> "$GITHUB_OUTPUT"
+          done < /tmp/seed.env
+          # Sanity-check: every required VITE_* address must have been emitted.
+          for key in VITE_FESTIVAL_ADDRESS VITE_FESTIVAL_POAP_ADDRESS VITE_SUB_EVENT_POAP_ADDRESS; do
+            grep -q "^${key}=" /tmp/seed.env || { echo "::error::seed script did not emit ${key} on stdout"; exit 1; }
+          done
+
+  e2e-admin:
+    needs: seed
+    runs-on: ubuntu-latest
+    name: E2E — Admin
+    env:
+      VITE_FESTIVAL_ADDRESS: ${{ needs.seed.outputs.vite_festival_address }}
+      VITE_FESTIVAL_POAP_ADDRESS: ${{ needs.seed.outputs.vite_festival_poap_address }}
+      VITE_SUB_EVENT_POAP_ADDRESS: ${{ needs.seed.outputs.vite_sub_event_poap_address }}
+      VITE_CHAIN_GENESIS_HASH: ${{ needs.seed.outputs.vite_chain_genesis_hash }}
+      VITE_BULLETIN_GENESIS_HASH: ${{ needs.seed.outputs.vite_bulletin_genesis_hash }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Load environment config (non-seeded keys only)
+        run: grep -v '^#' .github/env | grep -v '^$' | grep -v '^VITE_FESTIVAL_\|^VITE_SUB_EVENT_' >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run admin E2E tests
+        run: npm run test:e2e:admin
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: admin-e2e-results
+          path: packages/admin/test-results/
+          retention-days: 7
+
+  e2e-attendee:
+    needs: seed
+    runs-on: ubuntu-latest
+    name: E2E — Attendee
+    env:
+      VITE_FESTIVAL_ADDRESS: ${{ needs.seed.outputs.vite_festival_address }}
+      VITE_FESTIVAL_POAP_ADDRESS: ${{ needs.seed.outputs.vite_festival_poap_address }}
+      VITE_SUB_EVENT_POAP_ADDRESS: ${{ needs.seed.outputs.vite_sub_event_poap_address }}
+      VITE_CHAIN_GENESIS_HASH: ${{ needs.seed.outputs.vite_chain_genesis_hash }}
+      VITE_BULLETIN_GENESIS_HASH: ${{ needs.seed.outputs.vite_bulletin_genesis_hash }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Load environment config (non-seeded keys only)
+        run: grep -v '^#' .github/env | grep -v '^$' | grep -v '^VITE_FESTIVAL_\|^VITE_SUB_EVENT_' >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run attendee E2E tests
+        run: npm run test:e2e:attendee
+
+      - name: Upload test results
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: attendee-e2e-results
+          path: packages/attendee/test-results/
+          retention-days: 7

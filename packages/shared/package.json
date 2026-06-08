@@ -1,0 +1,35 @@
+{
+  "name": "@festival/shared",
+  "version": "0.1.0",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "main": "index.ts",
+  "types": "index.ts",
+  "imports": {
+    "#active-descriptors": "./host/descriptors/active.ts"
+  },
+  "scripts": {
+    "papi": "polkadot-api",
+    "papi:update": "polkadot-api update"
+  },
+  "dependencies": {
+    "@novasamatech/host-api": "0.8.2",
+    "@novasamatech/host-api-wrapper": "0.8.2",
+    "@parity/product-sdk-address": "^0.1.1",
+    "@parity/product-sdk-bulletin": "^0.4.1",
+    "@parity/product-sdk-host": "^0.6.0",
+    "@polkadot-api/descriptors": "file:.papi/descriptors",
+    "@polkadot-api/substrate-bindings": "^0.20.2",
+    "@polkadot-labs/hdkd": "^0.0.26",
+    "@polkadot-labs/hdkd-helpers": "^0.0.27",
+    "multiformats": "^13.3.1",
+    "pinia": "^3.0.1",
+    "polkadot-api": "^2.1.1",
+    "qr-code-styling": "^1.9.2",
+    "viem": "^2.46.2"
+  },
+  "peerDependencies": {
+    "vue": "^3.5.0"
+  }
+}

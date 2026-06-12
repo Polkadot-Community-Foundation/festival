@@ -1,0 +1,64 @@
+# Redeploy both SPAs to their Summit DotNS domains (web3summit-admin.dot /
+# web3summit.dot). Both names are already registered and owned by the
+# publisher account, so a run is pure day-2: build → upload the delta to
+# Summit Bulletin (unchanged chunks are recycled) → repoint the contenthash.
+#
+# Triggers:
+#   - manual: Actions → "Deploy (Summit)" → Run workflow
+#   - automatic: push to main that touches app code or this deploy config
+#
+# Config lives in .github/env.summit (domains + Summit contract addresses).
+# Required repo secret: DOTNS_MNEMONIC — must be the account that OWNS both
+# .dot names on Summit DotNS and holds a LIVE Summit Bulletin storage
+# authorization (authorizations expire ~every 13 days and only Summit's
+# authorizer can refresh them — if the deploy job fails uploading, check
+# the authorization before anything else).
+#
+# publish stays false: Summit's DotNS deployment has no Publisher registry.
+name: Deploy (Summit)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "package-lock.json"
+      - "scripts/bundle-worker-into.mjs"
+      - "scripts/deploy/emit-manifest.mjs"
+      - ".github/env.summit"
+      - ".github/workflows/deploy-summit.yml"
+      - ".github/workflows/_deploy.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+# One deploy at a time — both jobs sign with the same publisher account, and
+# overlapping runs would race its nonce.
+concurrency:
+  group: deploy-summit
+  cancel-in-progress: false
+
+jobs:
+  admin:
+    name: Admin
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      spa: admin
+      env-file: .github/env.summit
+      publish: false
+    secrets:
+      mnemonic: ${{ secrets.DOTNS_MNEMONIC }}
+
+  # Same publisher account as admin → run after it to avoid a nonce race.
+  attendee:
+    needs: admin
+    name: Attendee
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      spa: attendee
+      env-file: .github/env.summit
+      publish: false
+    secrets:
+      mnemonic: ${{ secrets.DOTNS_MNEMONIC }}

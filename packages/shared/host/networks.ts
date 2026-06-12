@@ -150,14 +150,16 @@ export const NETWORKS: Record<NetworkKey, NetworkConfig> = {
       wsUrl: "wss://summit-asset-hub-rpc.polkadot.io",
       genesisHash:
         "0xf388dc6d6cdf6fb77eac3c4a91f31bc0c8642b142f1a757512ab7849f9f70660",
-      // No PAPI descriptor committed for Summit yet (no `.scale`); descriptorKey
-      // omitted so gen-papi-config.ts skips it. The deploy path uses untyped
-      // ReviveApi calls, so a typed descriptor is not required to deploy.
+      // PCF fork: opted into PAPI descriptor generation so the SPAs can build
+      // for Summit. Run `npm run papi:update` to fetch metadata + emit the
+      // summitAh/summitBulletin `.scale` files and descriptors/summit.ts.
+      descriptorKey: "summitAh",
     },
     bulletinChain: {
       wsUrl: "wss://summit-bulletin-rpc.polkadot.io",
       genesisHash:
         "0x147aae0d60625af72300d4d5ebd5dcb869f7ac4c6c1a326be1cbb14a4a65ae77",
+      descriptorKey: "summitBulletin",
     },
     ipfsGateway: "https://summit-ipfs.polkadot.io",
     nativeToken: { symbol: "SUM", decimals: 10 },

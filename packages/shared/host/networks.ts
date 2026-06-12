@@ -4,12 +4,13 @@
  * on unknown keys so a misconfigured deploy fails at boot.
  */
 
-export type NetworkKey = "paseo" | "paseo-next-v2" | "previewnet";
+export type NetworkKey = "paseo" | "paseo-next-v2" | "previewnet" | "summit";
 
 export const SUPPORTED_NETWORKS: NetworkKey[] = [
   "paseo",
   "paseo-next-v2",
   "previewnet",
+  "summit",
 ];
 export const DEFAULT_NETWORK: NetworkKey = "paseo";
 
@@ -129,6 +130,37 @@ export const NETWORKS: Record<NetworkKey, NetworkConfig> = {
     },
     ipfsGateway: "https://previewnet.substrate.dev/ipfs/",
     nativeToken: { symbol: "PAS", decimals: 10 },
+  },
+  // ── Summit (PCF deploy target) ──────────────────────────────────────────
+  // Summit Asset Hub (PolkaVM / pallet-revive) + Summit Bulletin. Genesis hash
+  // is stable (confirmed live 2026-06-11). Native token SUM, 10 decimals,
+  // SS58 prefix 0. This entry is added by the PCF fork so BOTH the browser
+  // build (resolveNetwork(VITE_NETWORK)) and the Node deploy scripts can target
+  // Summit with NETWORK=summit / VITE_NETWORK=summit — the `custom` env path is
+  // Node-only (constants.ts has no `custom` branch and would throw at app boot),
+  // so a first-class registry entry is the clean route.
+  // NOTE: this is a PCF-fork-only addition; it will conflict on `git merge
+  // upstream/main` (NetworkKey union + NETWORKS map). Keep it as a small,
+  // reviewable diff.
+  summit: {
+    key: "summit",
+    displayName: "Summit",
+    isTestnet: true,
+    mainChain: {
+      wsUrl: "wss://summit-asset-hub-rpc.polkadot.io",
+      genesisHash:
+        "0xf388dc6d6cdf6fb77eac3c4a91f31bc0c8642b142f1a757512ab7849f9f70660",
+      // No PAPI descriptor committed for Summit yet (no `.scale`); descriptorKey
+      // omitted so gen-papi-config.ts skips it. The deploy path uses untyped
+      // ReviveApi calls, so a typed descriptor is not required to deploy.
+    },
+    bulletinChain: {
+      wsUrl: "wss://summit-bulletin-rpc.polkadot.io",
+      genesisHash:
+        "0x147aae0d60625af72300d4d5ebd5dcb869f7ac4c6c1a326be1cbb14a4a65ae77",
+    },
+    ipfsGateway: "https://summit-ipfs.polkadot.io",
+    nativeToken: { symbol: "SUM", decimals: 10 },
   },
 };
 

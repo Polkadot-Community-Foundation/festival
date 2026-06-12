@@ -57,7 +57,7 @@ jobs:
       # (unauthorized on Summit); the fork carries the fix (0c5c20e). Pinned SHA —
       # bump deliberately when the fork advances.
       polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
-      polkadot-app-deploy-ref: e834117587ad9a1a80eaba927756cd62f3f11113
+      polkadot-app-deploy-ref: dbeda85ed7fc6ffb7ae0c79c94518f63c173267a
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}
 
@@ -76,6 +76,6 @@ jobs:
       # (unauthorized on Summit); the fork carries the fix (0c5c20e). Pinned SHA —
       # bump deliberately when the fork advances.
       polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
-      polkadot-app-deploy-ref: e834117587ad9a1a80eaba927756cd62f3f11113
+      polkadot-app-deploy-ref: dbeda85ed7fc6ffb7ae0c79c94518f63c173267a
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}

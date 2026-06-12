@@ -15,6 +15,9 @@
 # the authorization before anything else).
 #
 # publish stays false: Summit's DotNS deployment has no Publisher registry.
+# direct-signer stays true: the default pool-mode storage accounts come from a
+# public phrase and are not (and must not be) Bulletin-authorized on Summit —
+# only the DOTNS_MNEMONIC account is, so it signs the storage txs itself.
 name: Deploy (Summit)
 
 on:
@@ -48,6 +51,7 @@ jobs:
       spa: admin
       env-file: .github/env.summit
       publish: false
+      direct-signer: true
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}
 
@@ -60,5 +64,6 @@ jobs:
       spa: attendee
       env-file: .github/env.summit
       publish: false
+      direct-signer: true
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}

@@ -29,6 +29,10 @@ on:
         description: "List the domain in the public Publisher registry"
         default: false
         type: boolean
+      direct-signer:
+        description: "Sign Bulletin storage txs with the mnemonic account itself instead of the public pool accounts (required on chains where only that account is storage-authorized, e.g. Summit)"
+        default: false
+        type: boolean
       max-retries:
         description: "Deploy retry attempts"
         default: 3
@@ -124,5 +128,6 @@ jobs:
       env: ${{ needs.build.outputs.bulletin-env }}
       max-retries: ${{ inputs.max-retries }}
       publish: ${{ inputs.publish }}
+      direct-signer: ${{ inputs.direct-signer }}
     secrets:
       mnemonic: ${{ secrets.mnemonic }}

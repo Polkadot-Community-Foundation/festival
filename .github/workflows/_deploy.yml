@@ -33,6 +33,14 @@ on:
         description: "Sign Bulletin storage txs with the mnemonic account itself instead of the public pool accounts (required on chains where only that account is storage-authorized, e.g. Summit)"
         default: false
         type: boolean
+      polkadot-app-deploy-repo:
+        description: "Repository (owner/name) to source-build polkadot-app-deploy from when polkadot-app-deploy-ref is set"
+        default: paritytech/polkadot-app-deploy
+        type: string
+      polkadot-app-deploy-ref:
+        description: "Git ref of polkadot-app-deploy to build from source instead of installing the npm release"
+        default: ""
+        type: string
       max-retries:
         description: "Deploy retry attempts"
         default: 3
@@ -121,7 +129,7 @@ jobs:
   deploy:
     needs: build
     name: Publish ${{ inputs.spa }} → DotNS
-    uses: paritytech/polkadot-app-deploy/.github/workflows/deploy.yml@main
+    uses: Polkadot-Community-Foundation/polkadot-app-deploy/.github/workflows/deploy.yml@main
     with:
       dotns-domain: ${{ needs.build.outputs.domain }}
       artifact-name: ${{ needs.build.outputs.artifact }}
@@ -129,5 +137,7 @@ jobs:
       max-retries: ${{ inputs.max-retries }}
       publish: ${{ inputs.publish }}
       direct-signer: ${{ inputs.direct-signer }}
+      polkadot-app-deploy-repo: ${{ inputs.polkadot-app-deploy-repo }}
+      polkadot-app-deploy-ref: ${{ inputs.polkadot-app-deploy-ref }}
     secrets:
       mnemonic: ${{ secrets.mnemonic }}

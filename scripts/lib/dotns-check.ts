@@ -40,6 +40,13 @@ const DOTNS_CONTRACTS_BY_NETWORK: Record<string, DotnsContracts> = {
     popRules: '0xF209a15e8a10D208bb4d3e3c56D9EB73a5934C26',
     registrar: '0x061273AeF34e8ab9Ca08E199d7440E2639Fc2088',
   },
+  // PCF-fork addition: Summit DotNS deployment (summit-net-deployments register,
+  // deployed 2026-06-07). Advisory only — enables the personhood/ownership read
+  // when NETWORK=summit. Conflicts on `git merge upstream/main`.
+  summit: {
+    popRules: '0x6331e51C9AfC73BfE12562fd160BA2c66A73f984',
+    registrar: '0xf3969bCBE60463302306663C62A6A8ef91ab9aA5',
+  },
 }
 
 export function dotnsContractsFor(networkKey: string): DotnsContracts | null {

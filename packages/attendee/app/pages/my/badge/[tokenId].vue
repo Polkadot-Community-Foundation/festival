@@ -2,12 +2,12 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { usePoaps } from '~/composables/usePoaps'
 import { useSubEvents } from '~/composables/useSubEvents'
-import { useFestival } from '~/composables/useFestival'
+import { useVenueMap } from '~/composables/useVenueMap'
 import { getDominantBadgeColor } from '@festival/shared/utils/badge'
 import { deriveFestivalColor } from '@festival/shared/utils/festivalColor'
 import { shortenAddress } from '@festival/shared/utils/address'
 import FestivalPoapBadge from '~/components/FestivalPoapBadge.vue'
-import { resolveLocationLabel } from '@festival/shared/venue/floors'
+import { resolveFullLocationLabel } from '@festival/shared/venue/floors'
 import { formatTimeBerlin, formatDateBerlin } from '@festival/shared/utils/time'
 import {
   createBadge3D, generateEdgeColors, hexToRgb, darkenRgb,
@@ -27,7 +27,6 @@ const poapContract = (route.query.contract as string) || ''
 
 const { getById, isLoading: poapsLoading, poaps } = usePoaps()
 const { subEvents } = useSubEvents()
-const { metadata: festivalMetadata } = useFestival()
 
 const poap = computed(() => getById(poapContract, tokenId))
 
@@ -49,9 +48,7 @@ const subEvent = computed(() => {
   ) || null
 })
 
-const venueMarkers = computed(
-  () => festivalMetadata.value?.venueMap?.markers ?? [],
-)
+const { markers: venueMarkers, zones: venueZones } = useVenueMap()
 
 // ── Display data ──
 
@@ -82,7 +79,11 @@ const timeAndLocation = computed(() => {
   const toTime = formatTimeBerlin(end)
   let label = `${dayAndMonth} · ${fromTime}–${toTime}`
   if (subEvent.value.metadata.location) {
-    const loc = resolveLocationLabel(subEvent.value.metadata.location, venueMarkers.value)
+    const loc = resolveFullLocationLabel(
+      subEvent.value.metadata.location,
+      venueMarkers.value,
+      venueZones.value,
+    )
     if (loc) label += ` ${loc}`
   }
   return label

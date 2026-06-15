@@ -11,7 +11,8 @@ import { useNow } from "~/composables/useNow";
 import { useSessionWatcher } from "~/composables/useSessionWatcher";
 import { useWalletStore } from "@festival/shared/host/wallet";
 import { FESTIVAL_ADDRESS } from "@festival/shared/contracts/addresses";
-import { resolveLocationLabel } from "@festival/shared/venue/floors";
+import { resolveFullLocationLabel } from "@festival/shared/venue/floors";
+import { useVenueMap } from "~/composables/useVenueMap";
 import { useBulletinImage } from "~/composables/useBulletinImage";
 import {
   SESSION_CHECKIN_GRACE_MS,
@@ -117,13 +118,7 @@ function dismissBadgeEarned() {
   badgeEarnedOpen.value = false;
 }
 
-const venueMarkers = computed(
-  () => festivalMetadata.value?.venueMap?.markers ?? [],
-);
-
-const venueZones = computed(
-  () => festivalMetadata.value?.venueMap?.zones ?? [],
-);
+const { markers: venueMarkers, zones: venueZones } = useVenueMap();
 
 const speakerLabel = computed(() => {
   const speakers = subEvent.value?.metadata.speakers ?? [];
@@ -146,9 +141,10 @@ const dayLabel = computed(() => {
 
 const locationLabel = computed(() => {
   if (!subEvent.value?.metadata.location) return "";
-  return resolveLocationLabel(
+  return resolveFullLocationLabel(
     subEvent.value.metadata.location,
     venueMarkers.value,
+    venueZones.value,
   );
 });
 

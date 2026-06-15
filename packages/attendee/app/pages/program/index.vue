@@ -12,6 +12,7 @@ import { useRegistration } from "~/composables/useRegistration";
 import { useSavedItems } from "~/composables/useSavedItems";
 import { useOnboardingSeen } from "~/composables/useOnboardingSeen";
 import { FESTIVAL_ADDRESS } from "@festival/shared/contracts/addresses";
+import { useVenueMap } from "~/composables/useVenueMap";
 import { toBerlinDateKey, berlinHourOf } from "@festival/shared/utils/time";
 import type {
   TimelineDay,
@@ -128,9 +129,7 @@ const activeDays = computed<TimelineDay[]>(() =>
   activeTab.value === "program" ? days.value : myListDays.value,
 );
 
-const venueMarkers = computed(
-  () => metadata.value?.venueMap?.markers ?? [],
-);
+const { markers: venueMarkers, zones: venueZones } = useVenueMap();
 
 function onScroll() {
   const y = scroller.value?.scrollTop ?? 0;
@@ -397,6 +396,7 @@ const subEventsEnabled = computed(() => metadata.value?.subEventsEnabled !== fal
                 <ProgramCard
                   :item="item"
                   :venue-markers="venueMarkers"
+                  :venue-zones="venueZones"
                   :is-bookmarked="isBookmarked(getItemId(item))"
                   :now="nowMs"
                   @toggle-bookmark="toggleBookmark"
@@ -414,6 +414,8 @@ const subEventsEnabled = computed(() => metadata.value?.subEventsEnabled !== fal
               :key="getItemId(item)"
               :item="item"
               :venue-markers="venueMarkers"
+              :venue-zones="venueZones"
+              location-format="full"
               :is-bookmarked="isBookmarked(getItemId(item))"
               :now="nowMs"
               @toggle-bookmark="toggleBookmark"

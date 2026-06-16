@@ -1,6 +1,6 @@
 name: PR Preview
 
-# Per-PR preview deploys of both SPAs to paseo-next-v2 via the reusable
+# Per-PR preview deploys of both SPAs to summit via the reusable
 # _deploy.yml workflow. Previews are never listed in the Publisher registry.
 on:
   pull_request:
@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v4
       - id: label
         run: |
-          set -a; source <(grep -v '^#' .github/env.paseo-next-v2 | grep -v '^$'); set +a
+          set -a; source <(grep -v '^#' .github/env.summit | grep -v '^$'); set +a
           PR="${{ github.event.pull_request.number }}"
           echo "admin=pr${PR}-${ADMIN_DOTNS_DOMAIN}" >> "$GITHUB_OUTPUT"
           echo "attendee=pr${PR}-${ATTENDEE_DOTNS_DOMAIN}" >> "$GITHUB_OUTPUT"

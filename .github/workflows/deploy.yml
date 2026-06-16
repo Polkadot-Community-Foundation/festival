@@ -1,8 +1,8 @@
-# Manually deploy both SPAs to their DotNS domains on paseo-next-v2.
+# Manually deploy both SPAs to their DotNS domains on summit.
 #
 # Trigger: Actions → "Deploy" → Run workflow.
 #
-# Config lives in .github/env.paseo-next-v2 (domains + contract addresses).
+# Config lives in .github/env.summit (domains + contract addresses).
 # Required repo secret: DOTNS_MNEMONIC (owner of the DotNS domains).
 #
 # Neither SPA is registered in the public Publisher registry here — that only

@@ -1,10 +1,10 @@
-# Deploy both SPAs to paseo-next-v2 via the reusable _deploy.yml workflow.
+# Deploy both SPAs to summit via the reusable _deploy.yml workflow.
 #
 #   push → main           → staging    (stg. domains,  nothing published)
 #   pre-release published  → production  (base domains,  nothing published)
 #   full release published → production  (base domains,  attendee published)
 #
-# Config (domains + contract addresses) lives in .github/env.paseo-next-v2.
+# Config (domains + contract addresses) lives in .github/env.summit.
 # Required repo secret: DOTNS_MNEMONIC (owner of the DotNS domains).
 name: Release
 
@@ -81,7 +81,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Load contract addresses
-        run: grep -v '^#' .github/env.paseo-next-v2 | grep -v '^$' >> $GITHUB_ENV
+        run: grep -v '^#' .github/env.summit | grep -v '^$' >> $GITHUB_ENV
 
       - name: Update release with deployment info
         env:
@@ -99,7 +99,7 @@ jobs:
 
           ---
 
-          ### Deployment — paseo-next-v2 (${VITE_NETWORK})
+          ### Deployment — summit (${VITE_NETWORK})
 
           | App | Domain | CID |
           |-----|--------|-----|

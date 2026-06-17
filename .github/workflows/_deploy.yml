@@ -19,7 +19,7 @@ on:
         type: string
       env-file:
         description: "Path to the committed env file for this network"
-        default: .github/env.paseo-next-v2
+        default: .github/env.summit
         type: string
       domain-prefix:
         description: "Prepended to the base DotNS domain (e.g. '', 'stg.', 'pr42-')"
@@ -103,7 +103,7 @@ jobs:
             exit 1
           fi
           echo "domain=${{ inputs.domain-prefix }}${base}" >> "$GITHUB_OUTPUT"
-          echo "bulletin-env=${BULLETIN_ENV:-paseo-next-v2}" >> "$GITHUB_OUTPUT"
+          echo "bulletin-env=${BULLETIN_ENV:-summit}" >> "$GITHUB_OUTPUT"
           echo "artifact=${{ inputs.spa }}-build${{ inputs.artifact-suffix }}" >> "$GITHUB_OUTPUT"
 
       - name: Install dependencies

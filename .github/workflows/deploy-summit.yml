@@ -14,7 +14,9 @@
 # authorizer can refresh them — if the deploy job fails uploading, check
 # the authorization before anything else).
 #
-# publish stays false: Summit's DotNS deployment has no Publisher registry.
+# publish: admin stays false (internal management app); attendee is true so it
+# lists in the browse app-directory via the Summit Publisher (the deploy signer
+# 5Fk8 owns that Publisher → publishes with no personhood gate / rate limit).
 # direct-signer stays true: the default pool-mode storage accounts come from a
 # public phrase and are not (and must not be) Bulletin-authorized on Summit —
 # only the DOTNS_MNEMONIC account is, so it signs the storage txs itself.
@@ -52,12 +54,12 @@ jobs:
       env-file: .github/env.summit
       publish: false
       direct-signer: true
-      # Source-build from the PCF fork: @parity/polkadot-app-deploy@0.10.0 signs
-      # MANIFEST uploads with the public pool accounts even under direct-signer
-      # (unauthorized on Summit); the fork carries the fix (0c5c20e). Pinned SHA —
-      # bump deliberately when the fork advances.
+      # Source-build from the PCF fork at the pinned main SHA (v0.11.1): carries
+      # both the manifest-upload ss58 fix and the Summit Publisher registry
+      # address (needed for attendee's publish leg). Pinned SHA — bump
+      # deliberately when the fork advances.
       polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
-      polkadot-app-deploy-ref: dbeda85ed7fc6ffb7ae0c79c94518f63c173267a
+      polkadot-app-deploy-ref: de47f7eef5b7b84427c68038894277d6ec374417
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}
 
@@ -69,13 +71,13 @@ jobs:
     with:
       spa: attendee
       env-file: .github/env.summit
-      publish: false
+      publish: true
       direct-signer: true
-      # Source-build from the PCF fork: @parity/polkadot-app-deploy@0.10.0 signs
-      # MANIFEST uploads with the public pool accounts even under direct-signer
-      # (unauthorized on Summit); the fork carries the fix (0c5c20e). Pinned SHA —
-      # bump deliberately when the fork advances.
+      # Source-build from the PCF fork at the pinned main SHA (v0.11.1): carries
+      # both the manifest-upload ss58 fix and the Summit Publisher registry
+      # address (needed for attendee's publish leg). Pinned SHA — bump
+      # deliberately when the fork advances.
       polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
-      polkadot-app-deploy-ref: dbeda85ed7fc6ffb7ae0c79c94518f63c173267a
+      polkadot-app-deploy-ref: de47f7eef5b7b84427c68038894277d6ec374417
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}

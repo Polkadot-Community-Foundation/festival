@@ -1,15 +1,21 @@
 import { onUnmounted, getCurrentInstance, watch, type Ref, type WatchStopHandle } from 'vue'
-import type { FestivalMetadata } from '../metadata/schemas'
+import type { FestivalMetadata, SubEventMetadata } from '../metadata/schemas'
+import { hydrateSubEventMetadata } from '../metadata/schemas'
 import { useBulletinStorage } from '../metadata/bulletin'
-import { hasDeployedContracts } from '../contracts/festival-reads'
-import { watchFestivalEvents } from './event-watcher'
+import { isNonZeroCid } from '../contracts/festival-reads'
+import { watchContractEvents, type FestivalEventHandlers } from './event-watcher'
 import {
+  festivalState,
   applyMetadataUpdated,
   applyRegistered,
   applyCheckedIn,
   applyCapacityUpdated,
   applyCancelled,
   applySessionCreated,
+  applySessionMetadata,
+  applySessionRegistered,
+  applySessionCheckedIn,
+  applySessionMetadataUpdated,
 } from './festival-state'
 
 export interface FestivalWatcherOptions {
@@ -17,6 +23,12 @@ export interface FestivalWatcherOptions {
   onDriftDetected?: (msg: string) => void
   /** Fired when the festival's channel CID pointer updates on chain. */
   onChannelMetadataUpdated?: (newCid: `0x${string}`) => void
+  /** Fired on a festival-level CheckedIn (after state applied). Lets the app
+   * refresh the checked-in user's festival POAP without a full reconcile. */
+  onCheckedIn?: (attendee: string) => void
+  /** Fired on a session-level CheckedIn (after state applied), for the same
+   * per-user POAP refresh on the session contract. */
+  onSessionCheckedIn?: (sessionAddress: `0x${string}`, attendee: string) => void
   /**
    * If provided, the watcher is held off until this ref flips to false.
    * Lets callers invoke the composable during setup (so onUnmounted registers)
@@ -34,15 +46,13 @@ export function useFestivalWatcher(
   festivalAddress: `0x${string}`,
   options: FestivalWatcherOptions = {},
 ) {
-  if (!hasDeployedContracts()) return
-
   const instance = getCurrentInstance()
   if (!instance) {
     console.error(`[FestivalWatcher] useFestivalWatcher: called OUTSIDE setup — cleanup cannot register. This is a bug: move the call to script-setup top level and pass deferWhileLoading instead.`)
     return
   }
 
-  const { deferWhileLoading, onChannelMetadataUpdated } = options
+  const { deferWhileLoading, onChannelMetadataUpdated, onCheckedIn, onSessionCheckedIn } = options
 
   let active: { unsubscribe: () => void } | null = null
   let disposed = false
@@ -65,8 +75,49 @@ export function useFestivalWatcher(
     }
   }
 
+  // Tear down the current chainHead follow and open a fresh one. The host can
+  // silently pause the WebSocket while backgrounded; on resume the existing
+  // follow may be dead with no error emitted, so the visibility handler calls
+  // this after reconciling to guarantee live updates resume.
+  function restart() {
+    if (disposed) return
+    if (active) {
+      active.unsubscribe()
+      active = null
+    }
+    active = buildHandlers()
+  }
+
+  const normalizedFestival = festivalAddress.toLowerCase()
+
+  // Session contract handlers route the same event names into the session-scoped
+  // apply helpers. Rebuilt per event (cheap) so a session created mid-session is
+  // covered without re-subscribing the follow.
+  function makeSessionHandlers(sessionAddr: `0x${string}`): FestivalEventHandlers {
+    return {
+      onRegistered: (attendee) => {
+        applySessionRegistered(sessionAddr, attendee as `0x${string}`)
+      },
+      onCheckedIn: (attendee) => {
+        applySessionCheckedIn(sessionAddr, attendee as `0x${string}`)
+        onSessionCheckedIn?.(sessionAddr, attendee)
+      },
+      onMetadataUpdated: async (newCid) => {
+        if (!isNonZeroCid(newCid)) return
+        let metadata: SubEventMetadata | null = null
+        try {
+          const { retrievePlaintext } = useBulletinStorage()
+          metadata = hydrateSubEventMetadata(await retrievePlaintext<SubEventMetadata>(newCid))
+        } catch (e) {
+          console.warn('[FestivalWatcher] session metadata fetch failed:', e)
+        }
+        applySessionMetadataUpdated(sessionAddr, newCid, metadata)
+      },
+    }
+  }
+
   function buildHandlers() {
-    return watchFestivalEvents(festivalAddress, {
+    const festivalHandlers: FestivalEventHandlers = {
       onMetadataUpdated: async (newCid) => {
         let newMetadata: FestivalMetadata | null = null
         try {
@@ -88,14 +139,30 @@ export function useFestivalWatcher(
 
       onCheckedIn: (attendee) => {
         applyCheckedIn(attendee as `0x${string}`)
+        onCheckedIn?.(attendee)
       },
 
-      onSessionCreated: (sessionAddr, creator, metadataCid) => {
+      onSessionCreated: async (sessionAddr, creator, metadataCid) => {
         applySessionCreated(
           sessionAddr as `0x${string}`,
           creator as `0x${string}`,
           metadataCid,
         )
+        // Fetch the metadata so the card shows a title right away. Skip when
+        // the entry already moved past the creation cid, and pass the cid so
+        // a fetch that raced a newer update cannot apply old content.
+        const entryCid = festivalState.sessions
+          .find((s) => s.address.toLowerCase() === sessionAddr.toLowerCase())
+          ?.details.metadataCid.toLowerCase()
+        if (isNonZeroCid(metadataCid) && entryCid === metadataCid.toLowerCase()) {
+          try {
+            const { retrievePlaintext } = useBulletinStorage()
+            const raw = await retrievePlaintext<SubEventMetadata>(metadataCid)
+            applySessionMetadata(sessionAddr as `0x${string}`, hydrateSubEventMetadata(raw), metadataCid)
+          } catch (e) {
+            console.warn('[FestivalWatcher] session metadata fetch failed:', e)
+          }
+        }
       },
 
       onCapacityUpdated: (newCapacity) => {
@@ -105,6 +172,17 @@ export function useFestivalWatcher(
       onCancelled: () => {
         applyCancelled()
       },
+    }
+
+    // One follow, dispatch by emitting contract: the festival, or any session
+    // currently in state. The session set is read per event, so newly created
+    // sessions are covered without re-subscribing.
+    return watchContractEvents((contract) => {
+      if (contract === normalizedFestival) return festivalHandlers
+      if (festivalState.sessions.some((s) => s.address.toLowerCase() === contract)) {
+        return makeSessionHandlers(contract as `0x${string}`)
+      }
+      return null
     })
   }
 
@@ -132,4 +210,6 @@ export function useFestivalWatcher(
 
   // Reserved for future use: drift detection driven by reconcile diffs.
   void options.onDriftDetected
+
+  return { restart }
 }

@@ -1,11 +1,9 @@
 import { onUnmounted } from 'vue'
-import { hasDeployedContracts } from '../contracts/festival-reads'
 
 /**
  * Watch for visibility changes (tab/app returning to foreground) and run
  * the supplied callback. SPAs pass a `bootLoad{Attendee,Admin}` invocation
- * with `{ at: 'finalized' }` to refresh the central festivalState against
- * ground-truth chain data.
+ * to refresh the central festivalState against current chain data.
  *
  * Concurrent calls are dropped. If a previous reconcile is still running,
  * the new visibility event is ignored.
@@ -13,10 +11,6 @@ import { hasDeployedContracts } from '../contracts/festival-reads'
 export function useVisibilityReconcile(
   onVisible: () => Promise<void> | void,
 ): { stop: () => void } {
-  if (!hasDeployedContracts()) {
-    return { stop: () => {} }
-  }
-
   let reconciling = false
 
   async function handler() {

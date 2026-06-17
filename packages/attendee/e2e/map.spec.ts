@@ -64,6 +64,9 @@ test.describe('Venue map', () => {
     await expect(card).toBeVisible()
     await expect(card.locator('.sel-card__row')).toBeVisible()
     await expect(card.locator('.sel-card__breadcrumb')).not.toHaveText('')
+    // The description line is always populated — named markers show their label,
+    // icon-only markers (empty label) fall back to their type label.
+    await expect(card.locator('.sel-card__primary')).not.toHaveText('')
 
     // The session strip only renders when an entry is imminent. Assert it
     // is either absent or, when present, carries a source accent class.
@@ -104,9 +107,10 @@ test.describe('Venue map', () => {
     await expect(frame.locator('[data-testid="map-empty-prompt"]')).toBeVisible()
     await (await firstInteractiveMarker(frame)).click()
     await expect(card).toBeVisible()
-    // Tapping away (map / blocked / void paths) closes the card instead of
-    // dropping a pin.
-    await frame.locator('[data-testid="venue-map"]').click({ position: { x: 30, y: 30 } })
+    // Tap the empty top-left corner (the floor control sits top-right).
+    await frame.locator('[data-testid="venue-map"]').click({
+      position: { x: 20, y: 20 },
+    })
     await expect(card).toHaveCount(0)
   })
 
@@ -116,13 +120,19 @@ test.describe('Venue map', () => {
     await (await navLink(frame, 'map')).click()
     await tapBuilding(frame)
 
-    // The control is icon-only. The active floor is reflected in the
-    // "Switch to <other floor>" aria-label, which flips after toggling.
+    // Stack-variant control: each floor is a tab pill with aria-selected.
+    // Click an inactive indoor pill (skipping the outdoor pseudo-floor, which
+    // would trigger exit-to-outdoor instead of a floor swap) and assert the
+    // selection moves to it.
     const floorControl = frame.locator('[data-testid="floor-control"]')
     await expect(floorControl).toBeVisible()
-    const labelBefore = await floorControl.getAttribute('aria-label')
-    expect(labelBefore).toBeTruthy()
-    await floorControl.click()
-    await expect(floorControl).not.toHaveAttribute('aria-label', labelBefore!)
+    const otherPill = floorControl
+      .locator('[role="tab"][aria-selected="false"]:not([data-testid="floor-control-pill-venue"])')
+      .first()
+    await expect(otherPill).toBeVisible()
+    const otherTestId = await otherPill.getAttribute('data-testid')
+    expect(otherTestId).toBeTruthy()
+    await otherPill.click()
+    await expect(frame.locator(`[data-testid="${otherTestId}"]`)).toHaveAttribute('aria-selected', 'true')
   })
 })

@@ -4,26 +4,37 @@ import {
   isItemOngoing,
   isItemPast,
   getItemId,
+  getItemCategory,
+  CATEGORY_STYLE,
 } from "~/composables/useProgramTimeline";
 import { ss58ToH160, isValidEvmAddress } from "@festival/shared/utils/address";
 import {
-  getMarkerLocationLabel,
-  resolveLocationLabel,
+  LOCATION_LABEL_MAX_CHARS,
+  resolveFullLocationLabel,
+  resolveShortLocationLabel,
 } from "@festival/shared/venue/floors";
 import { useWalletStore } from "@festival/shared/host/wallet";
 import { FESTIVAL_ADDRESS } from "@festival/shared/contracts/addresses";
 import { useRegistration } from "~/composables/useRegistration";
-import type { VenueMarker } from "@festival/shared/metadata/schemas";
+import type { VenueMarker, VenueZone } from "@festival/shared/metadata/schemas";
 import type { BookmarkPayload } from "~/composables/useBookmarks";
 import { useMyListFlyAnimation } from "~/composables/useMyListFlyAnimation";
 import { formatTimeBerlin, parseFestivalDate } from "@festival/shared/utils/time";
+import { truncate } from "@festival/shared/utils/text";
 
-const props = defineProps<{
-  item: TimelineItem;
-  venueMarkers?: VenueMarker[];
-  isBookmarked?: boolean;
-  now?: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    item: TimelineItem;
+    venueMarkers?: VenueMarker[];
+    venueZones?: VenueZone[];
+    isBookmarked?: boolean;
+    now?: number;
+    // `short` = "Floor · Zone" for quick scan (Program tab).
+    // `full`  = "Floor · Zone · Marker" for precise navigation (My List tab).
+    locationFormat?: "short" | "full";
+  }>(),
+  { locationFormat: "short" },
+);
 
 const emit = defineEmits<{
   toggleBookmark: [id: string, payload: BookmarkPayload];
@@ -46,9 +57,7 @@ const isOwner = computed(() => {
 
 const accentColor = computed(() => {
   if (past.value) return "#44403c"; // stone-700
-  if (props.item.type === "community") return "#9462FA"; // --color-community
-  // official (ongoing or upcoming). Always white
-  return "#fafaf9"; // text-primary
+  return CATEGORY_STYLE[getItemCategory(props.item)].color;
 });
 
 const cardClass = computed(() => {
@@ -83,22 +92,25 @@ const timeRange = computed(() => {
 
 const venueLabel = computed(() => {
   if (!props.venueMarkers?.length) return "";
+  const zones = props.venueZones ?? [];
+  const resolve =
+    props.locationFormat === "full"
+      ? resolveFullLocationLabel
+      : resolveShortLocationLabel;
+  let label = "";
   if (props.item.type === "official" && props.item.entry.venueMarkerId) {
-    return getMarkerLocationLabel(
-      props.item.entry.venueMarkerId,
-      props.venueMarkers,
-    );
-  }
-  if (
+    label = resolve(props.item.entry.venueMarkerId, props.venueMarkers, zones);
+  } else if (
     props.item.type === "community" &&
     props.item.subEvent.metadata.location
   ) {
-    return resolveLocationLabel(
+    label = resolve(
       props.item.subEvent.metadata.location,
-      props.venueMarkers!,
+      props.venueMarkers,
+      zones,
     );
   }
-  return "";
+  return truncate(label, LOCATION_LABEL_MAX_CHARS);
 });
 
 const detailRoute = computed(() => {
@@ -195,10 +207,10 @@ function onStarTap(e: MouseEvent) {
         </p>
 
         <!-- Time + venue -->
-        <p class="text-xs mt-2">
+        <div class="text-xs mt-2 flex items-center justify-between gap-2">
           <span :class="timeClass">{{ timeRange }}<span v-if="past"> Ended </span></span>
-          <span v-if="venueLabel" :class="mutedClass">&nbsp;&nbsp;{{ venueLabel }}</span>
-        </p>
+          <span v-if="venueLabel" :class="mutedClass">{{ venueLabel }}</span>
+        </div>
       </div>
 
       <!-- Right action: pencil for owner, star for others -->

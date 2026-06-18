@@ -24,6 +24,12 @@ name: Deploy (Summit)
 
 on:
   workflow_dispatch:
+    inputs:
+      spa:
+        description: "Which SPA(s) to deploy"
+        type: choice
+        default: both
+        options: [both, admin, attendee]
   push:
     branches: [main]
     paths:
@@ -48,6 +54,8 @@ concurrency:
 jobs:
   admin:
     name: Admin
+    # On push: always. On manual dispatch: only when admin is selected.
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.spa == 'both' || inputs.spa == 'admin' }}
     uses: ./.github/workflows/_deploy.yml
     with:
       spa: admin
@@ -67,6 +75,10 @@ jobs:
   attendee:
     needs: admin
     name: Attendee
+    # On push: always (after admin succeeds). On manual dispatch: only when
+    # attendee is selected. always() so an admin-skipped dispatch (spa=attendee)
+    # still runs, but never after an admin failure when both are deploying.
+    if: ${{ always() && needs.admin.result != 'failure' && needs.admin.result != 'cancelled' && (github.event_name != 'workflow_dispatch' || inputs.spa == 'both' || inputs.spa == 'attendee') }}
     uses: ./.github/workflows/_deploy.yml
     with:
       spa: attendee

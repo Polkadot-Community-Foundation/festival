@@ -67,7 +67,7 @@ jobs:
       # address (needed for attendee's publish leg). Pinned SHA — bump
       # deliberately when the fork advances.
       polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
-      polkadot-app-deploy-ref: de47f7eef5b7b84427c68038894277d6ec374417
+      polkadot-app-deploy-ref: db82a2d3f90209175959498ac988f155bbdff750
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}
 
@@ -90,6 +90,6 @@ jobs:
       # address (needed for attendee's publish leg). Pinned SHA — bump
       # deliberately when the fork advances.
       polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
-      polkadot-app-deploy-ref: de47f7eef5b7b84427c68038894277d6ec374417
+      polkadot-app-deploy-ref: db82a2d3f90209175959498ac988f155bbdff750
     secrets:
       mnemonic: ${{ secrets.DOTNS_MNEMONIC }}

@@ -103,7 +103,7 @@ jobs:
             exit 1
           fi
           echo "domain=${{ inputs.domain-prefix }}${base}" >> "$GITHUB_OUTPUT"
-          echo "bulletin-env=${BULLETIN_ENV:-summit}" >> "$GITHUB_OUTPUT"
+          echo "bulletin-env=${BULLETIN_ENV:-paseo-next}" >> "$GITHUB_OUTPUT"
           echo "artifact=${{ inputs.spa }}-build${{ inputs.artifact-suffix }}" >> "$GITHUB_OUTPUT"
 
       - name: Install dependencies

@@ -156,13 +156,12 @@ export const NETWORKS: Record<NetworkKey, NetworkConfig> = {
   // `paseo` network entry that was removed in fork history; its `paseoAh`
   // descriptor metadata was deleted with it.
   //
-  // descriptorKey is intentionally omitted on BOTH chains: gen-papi-config skips
-  // networks without one, so devnet can connect (genesis/endpoints resolve) and
-  // the Node scripts can target it before its typed PAPI descriptor exists. No
-  // currently-registered descriptorKey is metadata-compatible with devnet's AH,
-  // so reuse would bake wrong types. To wire typed descriptors: set descriptorKey
-  // on both chains and run `npm run papi:update` against the live devnet
-  // endpoints (a chain step), then commit the fetched `.scale` files.
+  // descriptorKey (devnetAh / devnetBulletin) is wired on BOTH chains: their
+  // `.scale` metadata was fetched live from the devnet AH + Bulletin endpoints
+  // via `npm run papi:update` and committed, so gen-papi-config emits
+  // descriptors/devnet.ts and the SPAs can build with VITE_NETWORK=devnet. No
+  // currently-registered descriptorKey was metadata-compatible with devnet's AH,
+  // so devnet has its own fetched metadata rather than reusing another's.
   //
   // Like `summit`, this is a PCF-fork-only addition and will conflict on
   // `git merge upstream/main` (NetworkKey union + NETWORKS map). Keep it small.
@@ -174,11 +173,13 @@ export const NETWORKS: Record<NetworkKey, NetworkConfig> = {
       wsUrl: "wss://asset-hub-paseo-rpc.n.dwellir.com",
       genesisHash:
         "0xd6eec26135305a8ad257a20d003357284c8aa03d0bdb2b357ab0a22371e11ef2",
+      descriptorKey: "devnetAh",
     },
     bulletinChain: {
       wsUrl: "wss://bulletin-paseo.tservices.es:8443",
       genesisHash:
         "0xe101f0fa4627d29a257645e02be86d80378fea1a2bf8fa6a918d150ebc760a59",
+      descriptorKey: "devnetBulletin",
     },
     ipfsGateway: "https://bullet.sik.rocks",
     nativeToken: { symbol: "PAS", decimals: 10 },

@@ -25,6 +25,26 @@
       "metadata": ".papi/metadata/previewnetBulletin.scale",
       "genesis": "0xf37fa1f1450ea120edbf64c3fc447f671a00e1f1095a698f42eeec073c7ee487",
       "codeHash": "0xbf2cd56d20198f00ab6f38d7e77f15a9d5671d47beb5d456012ed45d23572045"
+    },
+    "summitAh": {
+      "wsUrl": "wss://summit-asset-hub-rpc.polkadot.io",
+      "metadata": ".papi/metadata/summitAh.scale",
+      "genesis": "0xf388dc6d6cdf6fb77eac3c4a91f31bc0c8642b142f1a757512ab7849f9f70660"
+    },
+    "summitBulletin": {
+      "wsUrl": "wss://summit-bulletin-rpc.polkadot.io",
+      "metadata": ".papi/metadata/summitBulletin.scale",
+      "genesis": "0x147aae0d60625af72300d4d5ebd5dcb869f7ac4c6c1a326be1cbb14a4a65ae77"
+    },
+    "devnetAh": {
+      "wsUrl": "wss://asset-hub-paseo-rpc.n.dwellir.com",
+      "metadata": ".papi/metadata/devnetAh.scale",
+      "genesis": "0xd6eec26135305a8ad257a20d003357284c8aa03d0bdb2b357ab0a22371e11ef2"
+    },
+    "devnetBulletin": {
+      "wsUrl": "wss://bulletin-paseo.tservices.es:8443",
+      "metadata": ".papi/metadata/devnetBulletin.scale",
+      "genesis": "0xe101f0fa4627d29a257645e02be86d80378fea1a2bf8fa6a918d150ebc760a59"
     }
   }
 }

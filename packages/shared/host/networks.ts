@@ -4,12 +4,13 @@
  * on unknown keys so a misconfigured deploy fails at boot.
  */
 
-export type NetworkKey = "paseo-next-v2" | "previewnet" | "summit";
+export type NetworkKey = "paseo-next-v2" | "previewnet" | "summit" | "devnet";
 
 export const SUPPORTED_NETWORKS: NetworkKey[] = [
   "paseo-next-v2",
   "previewnet",
   "summit",
+  "devnet",
 ];
 export const DEFAULT_NETWORK: NetworkKey = "paseo-next-v2";
 
@@ -143,6 +144,45 @@ export const NETWORKS: Record<NetworkKey, NetworkConfig> = {
     },
     ipfsGateway: "https://summit-ipfs.polkadot.io",
     nativeToken: { symbol: "SUM", decimals: 10 },
+  },
+  // ── Devnet (PCF public products devnet) ─────────────────────────────────
+  // Standard Paseo Asset Hub (para 1000, pallet-revive) + a Paseo Bulletin
+  // instance. Same first-class-registry rationale as `summit`: both the browser
+  // build (resolveNetwork(VITE_NETWORK)) and the Node deploy scripts target it
+  // with NETWORK=devnet / VITE_NETWORK=devnet. Contracts + genesis are the
+  // deployed truth in `.github/env.devnet`.
+  //
+  // NOTE: this mainChain (endpoint + genesis) is identical to the former
+  // `paseo` network entry that was removed in fork history; its `paseoAh`
+  // descriptor metadata was deleted with it.
+  //
+  // descriptorKey (devnetAh / devnetBulletin) is wired on BOTH chains: their
+  // `.scale` metadata was fetched live from the devnet AH + Bulletin endpoints
+  // via `npm run papi:update` and committed, so gen-papi-config emits
+  // descriptors/devnet.ts and the SPAs can build with VITE_NETWORK=devnet. No
+  // currently-registered descriptorKey was metadata-compatible with devnet's AH,
+  // so devnet has its own fetched metadata rather than reusing another's.
+  //
+  // Like `summit`, this is a PCF-fork-only addition and will conflict on
+  // `git merge upstream/main` (NetworkKey union + NETWORKS map). Keep it small.
+  devnet: {
+    key: "devnet",
+    displayName: "Devnet (Paseo Asset Hub)",
+    isTestnet: true,
+    mainChain: {
+      wsUrl: "wss://asset-hub-paseo-rpc.n.dwellir.com",
+      genesisHash:
+        "0xd6eec26135305a8ad257a20d003357284c8aa03d0bdb2b357ab0a22371e11ef2",
+      descriptorKey: "devnetAh",
+    },
+    bulletinChain: {
+      wsUrl: "wss://bulletin-paseo.tservices.es:8443",
+      genesisHash:
+        "0xe101f0fa4627d29a257645e02be86d80378fea1a2bf8fa6a918d150ebc760a59",
+      descriptorKey: "devnetBulletin",
+    },
+    ipfsGateway: "https://bullet.sik.rocks",
+    nativeToken: { symbol: "PAS", decimals: 10 },
   },
 };
 

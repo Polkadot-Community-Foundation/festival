@@ -1,0 +1,98 @@
+# Redeploy both SPAs to their devnet DotNS domains (web3summit-admin.dot /
+# web3summit.dot). Both names are already registered and owned by the
+# publisher account, so a run is pure day-2: build → upload the delta to
+# the devnet Bulletin (unchanged chunks are recycled) → repoint the contenthash.
+#
+# Additive to deploy-summit.yml — this targets the PCF public products devnet
+# (standard Paseo Asset Hub, para 1000) via .github/env.devnet. It does NOT
+# replace the Summit deploy; both workflows coexist.
+#
+# Triggers:
+#   - manual: Actions → "Deploy (devnet)" → Run workflow
+#   - automatic: push to main that touches app code or this deploy config
+#
+# Config lives in .github/env.devnet (domains + devnet contract addresses).
+# Required repo secret: DOTNS_MNEMONIC — must be the account that OWNS both
+# .dot names on the target DotNS and holds a LIVE Bulletin storage
+# authorization (if the deploy job fails uploading, check the authorization
+# before anything else).
+#
+# publish: admin stays false (internal management app); attendee is true so it
+# lists in the browse app-directory via the Publisher (the deploy signer owns
+# that Publisher → publishes with no personhood gate / rate limit).
+# direct-signer stays true: the default pool-mode storage accounts come from a
+# public phrase and are not (and must not be) Bulletin-authorized — only the
+# DOTNS_MNEMONIC account is, so it signs the storage txs itself.
+name: Deploy (devnet)
+
+on:
+  workflow_dispatch:
+    inputs:
+      spa:
+        description: "Which SPA(s) to deploy"
+        type: choice
+        default: both
+        options: [both, admin, attendee]
+  push:
+    branches: [main]
+    paths:
+      - "packages/**"
+      - "package-lock.json"
+      - "scripts/bundle-worker-into.mjs"
+      - "scripts/deploy/emit-manifest.mjs"
+      - ".github/env.devnet"
+      - ".github/workflows/deploy-devnet.yml"
+      - ".github/workflows/_deploy.yml"
+
+permissions:
+  contents: read
+  id-token: write
+
+# One deploy at a time — both jobs sign with the same publisher account, and
+# overlapping runs would race its nonce.
+concurrency:
+  group: deploy-devnet
+  cancel-in-progress: false
+
+jobs:
+  admin:
+    name: Admin
+    # On push: always. On manual dispatch: only when admin is selected.
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.spa == 'both' || inputs.spa == 'admin' }}
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      spa: admin
+      env-file: .github/env.devnet
+      publish: false
+      direct-signer: true
+      # Source-build from the PCF fork at the pinned main SHA (v0.11.1): carries
+      # both the manifest-upload ss58 fix and the Publisher registry address
+      # (needed for attendee's publish leg). Pinned SHA — bump deliberately when
+      # the fork advances.
+      polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
+      polkadot-app-deploy-ref: db82a2d3f90209175959498ac988f155bbdff750
+    secrets:
+      mnemonic: ${{ secrets.DOTNS_MNEMONIC }}
+
+  # Same publisher account as admin → run after it to avoid a nonce race.
+  attendee:
+    needs: admin
+    name: Attendee
+    # On push: always (after admin succeeds). On manual dispatch: only when
+    # attendee is selected. always() so an admin-skipped dispatch (spa=attendee)
+    # still runs, but never after an admin failure when both are deploying.
+    if: ${{ always() && needs.admin.result != 'failure' && needs.admin.result != 'cancelled' && (github.event_name != 'workflow_dispatch' || inputs.spa == 'both' || inputs.spa == 'attendee') }}
+    uses: ./.github/workflows/_deploy.yml
+    with:
+      spa: attendee
+      env-file: .github/env.devnet
+      publish: true
+      direct-signer: true
+      # Source-build from the PCF fork at the pinned main SHA (v0.11.1): carries
+      # both the manifest-upload ss58 fix and the Publisher registry address
+      # (needed for attendee's publish leg). Pinned SHA — bump deliberately when
+      # the fork advances.
+      polkadot-app-deploy-repo: Polkadot-Community-Foundation/polkadot-app-deploy
+      polkadot-app-deploy-ref: db82a2d3f90209175959498ac988f155bbdff750
+    secrets:
+      mnemonic: ${{ secrets.DOTNS_MNEMONIC }}
